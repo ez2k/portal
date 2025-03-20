@@ -86,6 +86,36 @@
         p, a, span, div {
             font-family: 'NanumSquare', sans-serif;
         }
+        
+        .site-icon.ssh-icon {
+            background-color: #333;
+            border-radius: 50%;
+            padding: 4px;
+        }
+        
+        .ssh-card .card-content {
+            background-color: rgba(40, 44, 52, 0.9);
+            color: #f8f8f2;
+        }
+        
+        .ssh-card .card-title {
+            color: #66d9ef !important;
+        }
+        
+        .ssh-card p {
+            color: #f8f8f2;
+        }
+        
+        .connection-type {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: rgba(0, 0, 0, 0.5);
+            color: white;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.8em;
+        }
     </style>
 </head>
 <body>
@@ -173,6 +203,24 @@
             return grouped;
         }
 
+        // URL 유형을 확인하는 함수
+        function getUrlType(url) {
+            if (url.startsWith('ssh://')) {
+                return 'ssh';
+            }
+            return 'web';
+        }
+    
+        // 아이콘 URL을 가져오는 함수
+        function getIconUrl(favorite) {
+            if (favorite.type === 'ssh' || getUrlType(favorite.url) === 'ssh') {
+                return 'https://cdn-icons-png.flaticon.com/512/5261/5261903.png';
+            }
+            
+            const domain = extractDomain(favorite.url);
+            return `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
+        }
+
         // 즐겨찾기 목록을 표시하는 함수
         function displayFavorites() {
             const favoritesList = document.getElementById('favorites-list');
@@ -191,20 +239,22 @@
                 
                 // 해당 카테고리의 즐겨찾기 항목 표시
                 groupedFavorites[category].forEach(favorite => {
-                    const domain = extractDomain(favorite.url);
-                    const faviconUrl = `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
+                    const urlType = favorite.type || getUrlType(favorite.url);
+                    const iconUrl = getIconUrl(favorite);
+                    const isSsh = urlType === 'ssh';
                     
                     const favoriteItem = document.createElement('div');
                     favoriteItem.className = 'col s12 m6 l4';
                     favoriteItem.innerHTML = `
                         <a href="${favorite.url}" target="_blank" class="card-link">
-                            <div class="card">
+                            <div class="card ${isSsh ? 'ssh-card' : ''}">
                                 <div class="card-content">
-                                    <img src="${faviconUrl}" alt="${favorite.title} 아이콘" class="site-icon">
+                                    <img src="${iconUrl}" alt="${favorite.title} 아이콘" class="site-icon ${isSsh ? 'ssh-icon' : ''}">
                                     <div class="site-info">
                                         <span class="card-title">${favorite.title}</span>
                                         <p>${favorite.url}</p>
                                     </div>
+                                    ${isSsh ? '<span class="connection-type">SSH</span>' : ''}
                                 </div>
                             </div>
                         </a>

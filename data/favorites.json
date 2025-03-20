@@ -5,6 +5,16 @@
     "category": "검색"
   },
   {
+    "title": "네이버",
+    "url": "https://www.naver.com",
+    "category": "검색"
+  },
+  {
+    "title": "다음",
+    "url": "https://www.daum.net",
+    "category": "검색"
+  },
+  {
     "title": "GitHub",
     "url": "https://github.com",
     "category": "개발"
@@ -20,16 +30,6 @@
     "category": "개발"
   },
   {
-    "title": "네이버",
-    "url": "https://www.naver.com",
-    "category": "검색"
-  },
-  {
-    "title": "다음",
-    "url": "https://www.daum.net",
-    "category": "검색"
-  },
-  {
     "title": "유튜브",
     "url": "https://www.youtube.com",
     "category": "엔터테인먼트"
@@ -38,5 +38,23 @@
     "title": "넷플릭스",
     "url": "https://www.netflix.com",
     "category": "엔터테인먼트"
+  },
+  {
+    "title": "개발 서버",
+    "url": "ssh://user@dev-server.example.com",
+    "category": "SSH",
+    "type": "ssh"
+  },
+  {
+    "title": "프로덕션 서버",
+    "url": "ssh://admin@prod-server.example.com:2222",
+    "category": "SSH",
+    "type": "ssh"
+  },
+  {
+    "title": "데이터베이스 서버",
+    "url": "ssh://dbadmin@db.example.com",
+    "category": "SSH",
+    "type": "ssh"
   }
 ]
