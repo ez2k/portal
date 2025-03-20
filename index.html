@@ -56,21 +56,29 @@
             background-color: rgba(255, 255, 255, 0.9);
             border-radius: 15px;
             overflow: hidden;
+            transition: transform 0.2s, box-shadow 0.2s;
         }
-        .card-content {
-            color: #333;
-            display: flex;
-            align-items: center;
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
         }
-        .site-icon {
-            width: 24px;
-            height: 24px;
-            margin-right: 15px;
-            flex-shrink: 0;
+        
+        .card-link {
+            display: block;
+            color: inherit;
+            text-decoration: none;
         }
-        .site-info {
-            flex-grow: 1;
+        
+        .category-header {
+            color: white;
+            margin-top: 30px;
+            margin-bottom: 15px;
+            padding-left: 10px;
+            border-left: 5px solid #007BFF;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
         }
+        
         h1, h2, h3, h4, h5, h6 {
             font-family: 'NanumSquare', sans-serif;
             font-weight: 700;
@@ -150,29 +158,59 @@
             return domain || url;
         }
 
+        // 즐겨찾기를 카테고리별로 그룹화하는 함수
+        function groupByCategory(favorites) {
+            const grouped = {};
+            
+            favorites.forEach(favorite => {
+                const category = favorite.category || '미분류';
+                if (!grouped[category]) {
+                    grouped[category] = [];
+                }
+                grouped[category].push(favorite);
+            });
+            
+            return grouped;
+        }
+
         // 즐겨찾기 목록을 표시하는 함수
         function displayFavorites() {
             const favoritesList = document.getElementById('favorites-list');
             favoritesList.innerHTML = '';
-
-            favorites.forEach((favorite, index) => {
-                const domain = extractDomain(favorite.url);
-                const faviconUrl = `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
+            
+            // 카테고리별로 그룹화
+            const groupedFavorites = groupByCategory(favorites);
+            
+            // 각 카테고리에 대해
+            Object.keys(groupedFavorites).forEach(category => {
+                // 카테고리 헤더 추가
+                const categoryHeader = document.createElement('div');
+                categoryHeader.className = 'col s12';
+                categoryHeader.innerHTML = `<h3 class="category-header">${category}</h3>`;
+                favoritesList.appendChild(categoryHeader);
                 
-                const favoriteItem = document.createElement('div');
-                favoriteItem.className = 'col s12 m6';
-                favoriteItem.innerHTML = `
-                    <div class="card">
-                        <div class="card-content">
-                            <img src="${faviconUrl}" alt="${favorite.title} 아이콘" class="site-icon">
-                            <div class="site-info">
-                                <span class="card-title">${favorite.title}</span>
-                                <p><a href="${favorite.url}" target="_blank">${favorite.url}</a></p>
+                // 해당 카테고리의 즐겨찾기 항목 표시
+                groupedFavorites[category].forEach(favorite => {
+                    const domain = extractDomain(favorite.url);
+                    const faviconUrl = `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
+                    
+                    const favoriteItem = document.createElement('div');
+                    favoriteItem.className = 'col s12 m6 l4';
+                    favoriteItem.innerHTML = `
+                        <a href="${favorite.url}" target="_blank" class="card-link">
+                            <div class="card">
+                                <div class="card-content">
+                                    <img src="${faviconUrl}" alt="${favorite.title} 아이콘" class="site-icon">
+                                    <div class="site-info">
+                                        <span class="card-title">${favorite.title}</span>
+                                        <p>${favorite.url}</p>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-                    </div>
-                `;
-                favoritesList.appendChild(favoriteItem);
+                        </a>
+                    `;
+                    favoritesList.appendChild(favoriteItem);
+                });
             });
         }
 
