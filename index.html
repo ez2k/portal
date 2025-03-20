@@ -59,6 +59,17 @@
         }
         .card-content {
             color: #333;
+            display: flex;
+            align-items: center;
+        }
+        .site-icon {
+            width: 24px;
+            height: 24px;
+            margin-right: 15px;
+            flex-shrink: 0;
+        }
+        .site-info {
+            flex-grow: 1;
         }
         h1, h2, h3, h4, h5, h6 {
             font-family: 'NanumSquare', sans-serif;
@@ -128,24 +139,38 @@
                 });
         }
 
+        // URL에서 도메인 추출하는 함수
+        function extractDomain(url) {
+            let domain;
+            try {
+                domain = new URL(url).hostname;
+            } catch (e) {
+                domain = url.split('/')[2];
+            }
+            return domain || url;
+        }
+
         // 즐겨찾기 목록을 표시하는 함수
         function displayFavorites() {
             const favoritesList = document.getElementById('favorites-list');
             favoritesList.innerHTML = '';
 
             favorites.forEach((favorite, index) => {
+                const domain = extractDomain(favorite.url);
+                const faviconUrl = `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
+                
                 const favoriteItem = document.createElement('div');
                 favoriteItem.className = 'col s12 m6';
                 favoriteItem.innerHTML = `
-
-                    <a href="${favorite.url}" target="_blank">
                     <div class="card">
                         <div class="card-content">
-                            <span class="card-title">${favorite.title}</span>
-                            <p>${favorite.url}</p>
+                            <img src="${faviconUrl}" alt="${favorite.title} 아이콘" class="site-icon">
+                            <div class="site-info">
+                                <span class="card-title">${favorite.title}</span>
+                                <p><a href="${favorite.url}" target="_blank">${favorite.url}</a></p>
+                            </div>
                         </div>
                     </div>
-                    </a>
                 `;
                 favoritesList.appendChild(favoriteItem);
             });
