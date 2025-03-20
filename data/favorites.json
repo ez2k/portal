@@ -1,0 +1,34 @@
+[
+  {
+    "title": "Google",
+    "url": "https://www.google.com"
+  },
+  {
+    "title": "GitHub",
+    "url": "https://github.com"
+  },
+  {
+    "title": "MDN Web Docs",
+    "url": "https://developer.mozilla.org"
+  },
+  {
+    "title": "Stack Overflow",
+    "url": "https://stackoverflow.com"
+  },
+  {
+    "title": "네이버",
+    "url": "https://www.naver.com"
+  },
+  {
+    "title": "다음",
+    "url": "https://www.daum.net"
+  },
+  {
+    "title": "유튜브",
+    "url": "https://www.youtube.com"
+  },
+  {
+    "title": "넷플릭스",
+    "url": "https://www.netflix.com"
+  }
+]

@@ -6,6 +6,8 @@
     <title>즐겨찾기</title>
     <!-- Materialize CSS CDN -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css" rel="stylesheet">
+    <!-- Material Icons -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <style>
         body {
             background-color: #f4f4f4;
@@ -38,37 +40,25 @@
         <div id="favorites-list" class="row">
             <!-- 즐겨찾기 목록이 여기에 표시됩니다 -->
         </div>
-        <h2 class="center-align">새 즐겨찾기 추가</h2>
-        <form id="add-favorite-form" class="col s12">
-            <div class="row">
-                <div class="input-field col s6">
-                    <input id="title" type="text" name="title" required>
-                    <label for="title">제목</label>
-                </div>
-                <div class="input-field col s6">
-                    <input id="url" type="url" name="url" required>
-                    <label for="url">URL</label>
-                </div>
-            </div>
-            <div class="row center-align">
-                <button class="btn waves-effect waves-light" type="submit">추가</button>
-            </div>
-        </form>
     </div>
 
     <!-- Materialize JS CDN -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
     <script>
-        // 즐겨찾기 데이터를 저장할 JSON 배열
+        // 즐겨찾기 데이터를 저장할 배열
         let favorites = [];
 
-        // 로컬 스토리지에서 즐겨찾기 데이터를 로드
+        // JSON 파일에서 즐겨찾기 데이터를 로드
         function loadFavorites() {
-            const storedFavorites = localStorage.getItem('favorites');
-            if (storedFavorites) {
-                favorites = JSON.parse(storedFavorites);
-                displayFavorites();
-            }
+            fetch('data/favorites.json')
+                .then(response => response.json())
+                .then(data => {
+                    favorites = data;
+                    displayFavorites();
+                })
+                .catch(error => {
+                    console.error('즐겨찾기 데이터를 불러오는 중 오류가 발생했습니다:', error);
+                });
         }
 
         // 즐겨찾기 목록을 표시하는 함수
@@ -85,51 +75,11 @@
                             <span class="card-title">${favorite.title}</span>
                             <p><a href="${favorite.url}" target="_blank">${favorite.url}</a></p>
                         </div>
-                        <div class="card-action">
-                            <a class='dropdown-trigger btn-flat' href='#' data-target='dropdown${index}'>
-                                <i class="material-icons">more_vert</i>
-                            </a>
-                            <ul id='dropdown${index}' class='dropdown-content'>
-                                <li><a href="#" onclick="editFavorite(${index})">수정</a></li>
-                                <li><a href="#" onclick="removeFavorite(${index})">삭제</a></li>
-                            </ul>
-                        </div>
                     </div>
                 `;
                 favoritesList.appendChild(favoriteItem);
-
-                // 드롭다운 초기화
-                var elems = document.querySelectorAll('.dropdown-trigger');
-                M.Dropdown.init(elems, {
-                    constrainWidth: false,
-                    coverTrigger: false
-                });
             });
         }
-
-        // 즐겨찾기 추가 함수
-        function addFavorite(event) {
-            event.preventDefault();
-            const title = document.getElementById('title').value;
-            const url = document.getElementById('url').value;
-
-            favorites.push({ title, url });
-            localStorage.setItem('favorites', JSON.stringify(favorites));
-            displayFavorites();
-
-            // 입력 필드 초기화
-            document.getElementById('add-favorite-form').reset();
-        }
-
-        // 즐겨찾기 삭제 함수
-        function removeFavorite(index) {
-            favorites.splice(index, 1);
-            localStorage.setItem('favorites', JSON.stringify(favorites));
-            displayFavorites();
-        }
-
-        // 폼 제출 이벤트 리스너 등록
-        document.getElementById('add-favorite-form').addEventListener('submit', addFavorite);
 
         // 페이지 로드 시 즐겨찾기 데이터를 로드
         window.onload = loadFavorites;
