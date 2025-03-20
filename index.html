@@ -4,6 +4,93 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>즐겨찾기</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+        h1, h2 {
+            text-align: center;
+            color: #333;
+        }
+        #favorites-list {
+            max-width: 600px;
+            margin: 20px auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .favorite-item {
+            border-bottom: 1px solid #ddd;
+            padding: 10px 0;
+        }
+        .favorite-item:last-child {
+            border-bottom: none;
+        }
+        .favorite-item h3 {
+            margin: 0;
+            font-size: 1.2em;
+            color: #007BFF;
+        }
+        .favorite-item a {
+            color: #555;
+            text-decoration: none;
+        }
+        .favorite-item a:hover {
+            text-decoration: underline;
+        }
+        .favorite-item button {
+            background: #FF4136;
+            color: #fff;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .favorite-item button:hover {
+            background: #E50914;
+        }
+        #add-favorite-form {
+            max-width: 600px;
+            margin: 20px auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        #add-favorite-form label {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+        }
+        #add-favorite-form input {
+            width: calc(100% - 20px);
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        #add-favorite-form button {
+            width: 100%;
+            background: #007BFF;
+            color: #fff;
+            border: none;
+            padding: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        #add-favorite-form button:hover {
+            background: #0056b3;
+        }
+        @media (max-width: 600px) {
+            #favorites-list, #add-favorite-form {
+                padding: 10px;
+            }
+        }
+    </style>
 </head>
 <body>
     <h1>즐겨찾기 페이지</h1>
@@ -39,6 +126,7 @@
 
             favorites.forEach((favorite, index) => {
                 const favoriteItem = document.createElement('div');
+                favoriteItem.className = 'favorite-item';
                 favoriteItem.innerHTML = `
                     <h3>${favorite.title}</h3>
                     <p><a href="${favorite.url}" target="_blank">${favorite.url}</a></p>
