@@ -1,1 +1,79 @@
-test
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>즐겨찾기</title>
+</head>
+<body>
+    <h1>즐겨찾기 페이지</h1>
+    <div id="favorites-list">
+        <!-- 즐겨찾기 목록이 여기에 표시됩니다 -->
+    </div>
+    <h2>새 즐겨찾기 추가</h2>
+    <form id="add-favorite-form">
+        <label for="title">제목:</label>
+        <input type="text" id="title" name="title" required>
+        <label for="url">URL:</label>
+        <input type="url" id="url" name="url" required>
+        <button type="submit">추가</button>
+    </form>
+
+    <script>
+        // 즐겨찾기 데이터를 저장할 JSON 배열
+        let favorites = [];
+
+        // 로컬 스토리지에서 즐겨찾기 데이터를 로드
+        function loadFavorites() {
+            const storedFavorites = localStorage.getItem('favorites');
+            if (storedFavorites) {
+                favorites = JSON.parse(storedFavorites);
+                displayFavorites();
+            }
+        }
+
+        // 즐겨찾기 목록을 표시하는 함수
+        function displayFavorites() {
+            const favoritesList = document.getElementById('favorites-list');
+            favoritesList.innerHTML = '';
+
+            favorites.forEach((favorite, index) => {
+                const favoriteItem = document.createElement('div');
+                favoriteItem.innerHTML = `
+                    <h3>${favorite.title}</h3>
+                    <p><a href="${favorite.url}" target="_blank">${favorite.url}</a></p>
+                    <button onclick="removeFavorite(${index})">삭제</button>
+                `;
+                favoritesList.appendChild(favoriteItem);
+            });
+        }
+
+        // 즐겨찾기 추가 함수
+        function addFavorite(event) {
+            event.preventDefault();
+            const title = document.getElementById('title').value;
+            const url = document.getElementById('url').value;
+
+            favorites.push({ title, url });
+            localStorage.setItem('favorites', JSON.stringify(favorites));
+            displayFavorites();
+
+            // 입력 필드 초기화
+            document.getElementById('add-favorite-form').reset();
+        }
+
+        // 즐겨찾기 삭제 함수
+        function removeFavorite(index) {
+            favorites.splice(index, 1);
+            localStorage.setItem('favorites', JSON.stringify(favorites));
+            displayFavorites();
+        }
+
+        // 폼 제출 이벤트 리스너 등록
+        document.getElementById('add-favorite-form').addEventListener('submit', addFavorite);
+
+        // 페이지 로드 시 즐겨찾기 데이터를 로드
+        window.onload = loadFavorites;
+    </script>
+</body>
+</html>
