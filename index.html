@@ -4,108 +4,52 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>즐겨찾기</title>
+    <!-- Materialize CSS CDN -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css" rel="stylesheet">
     <style>
         body {
-            font-family: Arial, sans-serif;
             background-color: #f4f4f4;
-            margin: 0;
-            padding: 0;
         }
-        h1, h2 {
-            text-align: center;
-            color: #333;
+        .container {
+            margin-top: 50px;
         }
-        #favorites-list {
-            max-width: 600px;
-            margin: 20px auto;
-            background: #fff;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        .card-title {
+            color: #007BFF !important;
         }
-        .favorite-item {
-            border-bottom: 1px solid #ddd;
-            padding: 10px 0;
+        .remove-btn {
+            background-color: #FF4136 !important;
         }
-        .favorite-item:last-child {
-            border-bottom: none;
-        }
-        .favorite-item h3 {
-            margin: 0;
-            font-size: 1.2em;
-            color: #007BFF;
-        }
-        .favorite-item a {
-            color: #555;
-            text-decoration: none;
-        }
-        .favorite-item a:hover {
-            text-decoration: underline;
-        }
-        .favorite-item button {
-            background: #FF4136;
-            color: #fff;
-            border: none;
-            padding: 5px 10px;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-        .favorite-item button:hover {
-            background: #E50914;
-        }
-        #add-favorite-form {
-            max-width: 600px;
-            margin: 20px auto;
-            background: #fff;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        }
-        #add-favorite-form label {
-            display: block;
-            margin-bottom: 5px;
-            color: #333;
-        }
-        #add-favorite-form input {
-            width: calc(100% - 20px);
-            padding: 10px;
-            margin-bottom: 10px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-        }
-        #add-favorite-form button {
-            width: 100%;
-            background: #007BFF;
-            color: #fff;
-            border: none;
-            padding: 10px;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-        #add-favorite-form button:hover {
-            background: #0056b3;
-        }
-        @media (max-width: 600px) {
-            #favorites-list, #add-favorite-form {
-                padding: 10px;
-            }
+        .remove-btn:hover {
+            background-color: #E50914 !important;
         }
     </style>
 </head>
 <body>
-    <h1>즐겨찾기 페이지</h1>
-    <div id="favorites-list">
-        <!-- 즐겨찾기 목록이 여기에 표시됩니다 -->
+    <div class="container">
+        <h1 class="center-align">즐겨찾기 페이지</h1>
+        <div id="favorites-list" class="row">
+            <!-- 즐겨찾기 목록이 여기에 표시됩니다 -->
+        </div>
+        <h2 class="center-align">새 즐겨찾기 추가</h2>
+        <form id="add-favorite-form" class="col s12">
+            <div class="row">
+                <div class="input-field col s6">
+                    <input id="title" type="text" name="title" required>
+                    <label for="title">제목</label>
+                </div>
+                <div class="input-field col s6">
+                    <input id="url" type="url" name="url" required>
+                    <label for="url">URL</label>
+                </div>
+            </div>
+            <div class="row center-align">
+                <button class="btn waves-effect waves-light" type="submit">추가</button>
+            </div>
+        </form>
     </div>
-    <h2>새 즐겨찾기 추가</h2>
-    <form id="add-favorite-form">
-        <label for="title">제목:</label>
-        <input type="text" id="title" name="title" required>
-        <label for="url">URL:</label>
-        <input type="url" id="url" name="url" required>
-        <button type="submit">추가</button>
-    </form>
 
+    <!-- Materialize JS CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
     <script>
         // 즐겨찾기 데이터를 저장할 JSON 배열
         let favorites = [];
@@ -126,11 +70,17 @@
 
             favorites.forEach((favorite, index) => {
                 const favoriteItem = document.createElement('div');
-                favoriteItem.className = 'favorite-item';
+                favoriteItem.className = 'col s12 m6';
                 favoriteItem.innerHTML = `
-                    <h3>${favorite.title}</h3>
-                    <p><a href="${favorite.url}" target="_blank">${favorite.url}</a></p>
-                    <button onclick="removeFavorite(${index})">삭제</button>
+                    <div class="card">
+                        <div class="card-content">
+                            <span class="card-title">${favorite.title}</span>
+                            <p><a href="${favorite.url}" target="_blank">${favorite.url}</a></p>
+                        </div>
+                        <div class="card-action">
+                            <button class="btn remove-btn waves-effect waves-light" onclick="removeFavorite(${index})">삭제</button>
+                        </div>
+                    </div>
                 `;
                 favoritesList.appendChild(favoriteItem);
             });
