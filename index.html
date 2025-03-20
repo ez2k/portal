@@ -10,10 +10,23 @@
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <style>
         body {
-            background-color: #f4f4f4;
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            transition: background-image 1s ease-in-out;
+            color: #fff;
         }
         .container {
             margin-top: 50px;
+        }
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: -1;
         }
         .card-title {
             color: #007BFF !important;
@@ -32,9 +45,19 @@
         .dropdown-content li > a, .dropdown-content li > span {
             font-size: 0.9em !important;
         }
+        h1, h2 {
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+        }
+        .card {
+            background-color: rgba(255, 255, 255, 0.9);
+        }
+        .card-content {
+            color: #333;
+        }
     </style>
 </head>
 <body>
+    <div class="overlay"></div>
     <div class="container">
         <h1 class="center-align">즐겨찾기 페이지</h1>
         <div id="favorites-list" class="row">
@@ -45,6 +68,31 @@
     <!-- Materialize JS CDN -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
     <script>
+        // 배경 이미지 목록
+        const backgroundImages = [
+            'https://source.unsplash.com/random/1920x1080/?nature',
+            'https://source.unsplash.com/random/1920x1080/?city',
+            'https://source.unsplash.com/random/1920x1080/?ocean',
+            'https://source.unsplash.com/random/1920x1080/?mountains',
+            'https://source.unsplash.com/random/1920x1080/?forest',
+            'https://source.unsplash.com/random/1920x1080/?sunset',
+            'https://source.unsplash.com/random/1920x1080/?galaxy',
+            'https://source.unsplash.com/random/1920x1080/?architecture'
+        ];
+
+        // 랜덤 배경 이미지 설정 함수
+        function setRandomBackground() {
+            const randomIndex = Math.floor(Math.random() * backgroundImages.length);
+            const imageUrl = backgroundImages[randomIndex];
+            
+            // 이미지를 미리 로드하여 전환 시 부드럽게 표시
+            const img = new Image();
+            img.onload = function() {
+                document.body.style.backgroundImage = `url('${imageUrl}')`;
+            };
+            img.src = imageUrl;
+        }
+
         // 즐겨찾기 데이터를 저장할 배열
         let favorites = [];
 
@@ -81,8 +129,14 @@
             });
         }
 
-        // 페이지 로드 시 즐겨찾기 데이터를 로드
-        window.onload = loadFavorites;
+        // 페이지 로드 시 배경 이미지 설정 및 즐겨찾기 데이터 로드
+        window.onload = function() {
+            setRandomBackground();
+            loadFavorites();
+            
+            // 30초마다 배경 이미지 변경 (선택적)
+            setInterval(setRandomBackground, 30000);
+        };
     </script>
 </body>
 </html>
