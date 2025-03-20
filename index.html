@@ -15,12 +15,20 @@
         }
         .card-title {
             color: #007BFF !important;
+            font-size: 1.2em !important;
         }
-        .remove-btn {
-            background-color: #FF4136 !important;
+        .card-content p {
+            font-size: 1em !important;
         }
-        .remove-btn:hover {
-            background-color: #E50914 !important;
+        .card .card-action {
+            padding-right: 0;
+        }
+        .dropdown-trigger {
+            float: right;
+            margin-top: -10px;
+        }
+        .dropdown-content li > a, .dropdown-content li > span {
+            font-size: 0.9em !important;
         }
     </style>
 </head>
@@ -78,11 +86,24 @@
                             <p><a href="${favorite.url}" target="_blank">${favorite.url}</a></p>
                         </div>
                         <div class="card-action">
-                            <button class="btn remove-btn waves-effect waves-light" onclick="removeFavorite(${index})">삭제</button>
+                            <a class='dropdown-trigger btn-flat' href='#' data-target='dropdown${index}'>
+                                <i class="material-icons">more_vert</i>
+                            </a>
+                            <ul id='dropdown${index}' class='dropdown-content'>
+                                <li><a href="#" onclick="editFavorite(${index})">수정</a></li>
+                                <li><a href="#" onclick="removeFavorite(${index})">삭제</a></li>
+                            </ul>
                         </div>
                     </div>
                 `;
                 favoritesList.appendChild(favoriteItem);
+
+                // 드롭다운 초기화
+                var elems = document.querySelectorAll('.dropdown-trigger');
+                M.Dropdown.init(elems, {
+                    constrainWidth: false,
+                    coverTrigger: false
+                });
             });
         }
 
