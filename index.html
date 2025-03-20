@@ -118,12 +118,15 @@
                 const favoriteItem = document.createElement('div');
                 favoriteItem.className = 'col s12 m6';
                 favoriteItem.innerHTML = `
+
+                    <a href="${favorite.url}" target="_blank">
                     <div class="card">
                         <div class="card-content">
                             <span class="card-title">${favorite.title}</span>
-                            <p><a href="${favorite.url}" target="_blank">${favorite.url}</a></p>
+                            <p>${favorite.url}</p>
                         </div>
                     </div>
+                    </a>
                 `;
                 favoritesList.appendChild(favoriteItem);
             });
