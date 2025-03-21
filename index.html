@@ -281,11 +281,126 @@
                 width: 100%;
             }
         }
+
+        /* 즐겨찾기 추가 버튼 */
+        .fixed-action-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+        }
+        
+        .btn-floating {
+            box-shadow: 0 6px 10px rgba(0, 0, 0, 0.3);
+        }
+        
+        /* 즐겨찾기 카드의 액션 아이콘 */
+        .card-action i {
+            font-size: 18px;
+            transition: transform 0.2s ease;
+        }
+        
+        .card-action i:hover {
+            transform: scale(1.2);
+        }
+        
+        /* 모달 스타일 */
+        .modal {
+            border-radius: 10px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        .modal .modal-content {
+            padding: 30px;
+        }
+        
+        .modal h4 {
+            margin-top: 0;
+            color: #1976d2;
+        }
+        
+        .modal .input-field input:focus {
+            border-bottom: 1px solid #1976d2;
+            box-shadow: 0 1px 0 0 #1976d2;
+        }
+        
+        .modal .input-field input:focus + label {
+            color: #1976d2;
+        }
+        
+        @media screen and (max-width: 768px) {
+            .fixed-action-btn {
+                bottom: 20px;
+                right: 20px;
+            }
+        }
+
+        /* 인증 관련 스타일 */
+        #auth-status-container {
+            padding: 10px;
+            margin-top: 10px;
+            border-radius: 5px;
+            background-color: rgba(0, 0, 0, 0.2);
+            display: inline-block;
+        }
+        
+        #user-profile {
+            display: flex;
+            align-items: center;
+        }
+        
+        #user-photo {
+            border: 2px solid white;
+            background-color: white;
+        }
+        
+        #user-name {
+            font-weight: bold;
+        }
+        
+        /* 탭 스타일 */
+        .tabs .tab a {
+            color: rgba(25, 118, 210, 0.7);
+        }
+        
+        .tabs .tab a:hover, .tabs .tab a.active {
+            color: #1976d2;
+        }
+        
+        .tabs .indicator {
+            background-color: #1976d2;
+        }
+        
+        /* Google 로그인 버튼 */
+        #google-login-btn {
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
+            border: 1px solid #ddd;
+        }
+        
+        /* 로그인/회원가입 폼 */
+        #login-tab, #register-tab {
+            padding-top: 20px;
+        }
     </style>
 </head>
 <body>
     <div class="overlay"></div>
     <div class="container">
+        <!-- 헤더 영역에 로그인 상태 표시 추가 -->
+        <div class="row" style="margin-bottom: 0;">
+            <div class="col s12 right-align">
+                <div id="auth-status-container" style="padding: 10px; color: white;">
+                    <div id="user-profile" style="display: none;">
+                        <img id="user-photo" src="" alt="프로필" style="width: 32px; height: 32px; border-radius: 50%; margin-right: 10px; vertical-align: middle;">
+                        <span id="user-name">사용자</span>
+                        <a class="btn-small red darken-4 waves-effect waves-light" id="logout-btn" style="margin-left: 10px;">로그아웃</a>
+                    </div>
+                    <div id="login-container">
+                        <a class="btn blue darken-2 waves-effect waves-light modal-trigger" href="#auth-modal">로그인</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
         <!-- 위젯 컨테이너 추가 -->
         <div class="widgets-container">
             <!-- 시계 위젯 -->
@@ -319,8 +434,63 @@
         </div>
         
         <h1 class="center-align">즐겨찾기 페이지</h1>
+        
+        <!-- 즐겨찾기 추가 버튼 -->
+        <div class="fixed-action-btn">
+            <a class="btn-floating btn-large waves-effect waves-light blue" id="add-favorite-btn">
+                <i class="material-icons">add</i>
+            </a>
+        </div>
+        
         <div id="favorites-list" class="row">
             <!-- 즐겨찾기 목록이 여기에 표시됩니다 -->
+        </div>
+        
+        <!-- 즐겨찾기 추가/수정 모달 -->
+        <div id="favorite-modal" class="modal">
+            <div class="modal-content">
+                <h4 id="modal-title">즐겨찾기 추가</h4>
+                <div class="row">
+                    <form class="col s12" id="favorite-form">
+                        <input type="hidden" id="edit-index" value="">
+                        <div class="row">
+                            <div class="input-field col s12">
+                                <input id="favorite-title" type="text" class="validate" required>
+                                <label for="favorite-title">제목</label>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="input-field col s12">
+                                <input id="favorite-url" type="url" class="validate" required>
+                                <label for="favorite-url">URL</label>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="input-field col s12">
+                                <input id="favorite-category" type="text" class="validate" required>
+                                <label for="favorite-category">카테고리</label>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <a href="#!" class="modal-close waves-effect waves-red btn-flat">취소</a>
+                <a href="#!" id="save-favorite-btn" class="waves-effect waves-green btn-flat">저장</a>
+            </div>
+        </div>
+        
+        <!-- 삭제 확인 모달 -->
+        <div id="delete-modal" class="modal">
+            <div class="modal-content">
+                <h4>즐겨찾기 삭제</h4>
+                <p>이 즐겨찾기를 삭제하시겠습니까?</p>
+                <input type="hidden" id="delete-index" value="">
+            </div>
+            <div class="modal-footer">
+                <a href="#!" class="modal-close waves-effect waves-red btn-flat">취소</a>
+                <a href="#!" id="confirm-delete-btn" class="waves-effect waves-green btn-flat">삭제</a>
+            </div>
         </div>
         
         <!-- 동기화 상태 표시 -->
@@ -328,6 +498,72 @@
             <p id="favorites-sync-status" style="font-size: 0.9rem; color: #777;">
                 즐겨찾기 데이터: 로컬 모드
             </p>
+        </div>
+    </div>
+
+    <!-- 인증 모달 -->
+    <div id="auth-modal" class="modal">
+        <div class="modal-content">
+            <div class="row">
+                <div class="col s12">
+                    <ul class="tabs">
+                        <li class="tab col s6"><a href="#login-tab" class="active">로그인</a></li>
+                        <li class="tab col s6"><a href="#register-tab">회원가입</a></li>
+                    </ul>
+                </div>
+                <!-- 로그인 폼 -->
+                <div id="login-tab" class="col s12">
+                    <h4>로그인</h4>
+                    <form id="login-form">
+                        <div class="input-field">
+                            <input id="login-email" type="email" class="validate" required>
+                            <label for="login-email">이메일</label>
+                        </div>
+                        <div class="input-field">
+                            <input id="login-password" type="password" class="validate" required>
+                            <label for="login-password">비밀번호</label>
+                        </div>
+                        <div class="center-align" style="margin-top: 20px;">
+                            <button type="submit" class="btn blue darken-2 waves-effect waves-light">로그인</button>
+                        </div>
+                    </form>
+                    <div class="center-align" style="margin-top: 20px;">
+                        <p>또는</p>
+                        <button id="google-login-btn" class="btn white black-text waves-effect waves-light">
+                            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" style="width: 18px; margin-right: 10px; vertical-align: middle;">
+                            Google로 로그인
+                        </button>
+                    </div>
+                </div>
+                <!-- 회원가입 폼 -->
+                <div id="register-tab" class="col s12">
+                    <h4>회원가입</h4>
+                    <form id="register-form">
+                        <div class="input-field">
+                            <input id="register-name" type="text" class="validate" required>
+                            <label for="register-name">이름</label>
+                        </div>
+                        <div class="input-field">
+                            <input id="register-email" type="email" class="validate" required>
+                            <label for="register-email">이메일</label>
+                        </div>
+                        <div class="input-field">
+                            <input id="register-password" type="password" class="validate" required minlength="6">
+                            <label for="register-password">비밀번호 (6자 이상)</label>
+                        </div>
+                        <div class="input-field">
+                            <input id="register-password-confirm" type="password" class="validate" required minlength="6">
+                            <label for="register-password-confirm">비밀번호 확인</label>
+                        </div>
+                        <div class="center-align" style="margin-top: 20px;">
+                            <button type="submit" class="btn blue darken-2 waves-effect waves-light">회원가입</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <a href="#!" class="modal-close waves-effect waves-red btn-flat">닫기</a>
         </div>
     </div>
 
@@ -447,7 +683,7 @@
                 favoritesList.appendChild(categoryHeader);
                 
                 // 해당 카테고리의 즐겨찾기 항목 표시
-                groupedFavorites[category].forEach(favorite => {
+                groupedFavorites[category].forEach((favorite, index) => {
                     const urlType = favorite.type || getUrlType(favorite.url);
                     const iconUrl = getIconUrl(favorite);
                     const isSsh = urlType === 'ssh';
@@ -455,22 +691,263 @@
                     const favoriteItem = document.createElement('div');
                     favoriteItem.className = 'col s12 m6 l4';
                     favoriteItem.innerHTML = `
-                        <a href="${favorite.url}" target="_blank" class="card-link">
-                            <div class="card ${isSsh ? 'ssh-card' : ''}">
-                                <div class="card-content">
-                                    <img src="${iconUrl}" alt="${favorite.title} 아이콘" class="site-icon ${isSsh ? 'ssh-icon' : ''}">
-                                    <div class="site-info">
-                                        <span class="card-title">${favorite.title}</span>
-                                        <p>${isSsh ? favorite.url : `<a href="${favorite.url}" target="_blank">${favorite.url}</a>`}</p>
+                        <div class="card ${isSsh ? 'ssh-card' : ''}">
+                            <div class="card-content">
+                                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                                    <div style="display: flex; align-items: flex-start;">
+                                        <img src="${iconUrl}" alt="${favorite.title} 아이콘" class="site-icon ${isSsh ? 'ssh-icon' : ''}">
+                                        <div class="site-info">
+                                            <span class="card-title">${favorite.title}</span>
+                                            <p>${isSsh ? favorite.url : `<a href="${favorite.url}" target="_blank">${favorite.url}</a>`}</p>
+                                        </div>
                                     </div>
-                                    ${isSsh ? '<span class="connection-type">SSH</span>' : ''}
+                                    <div class="dropdown-trigger" data-target="dropdown-${index}">
+                                        <i class="material-icons" style="cursor: pointer;">more_vert</i>
+                                    </div>
+                                </div>
+                                ${isSsh ? '<span class="connection-type">SSH</span>' : ''}
+                            </div>
+                            <div class="card-action" style="display: flex; justify-content: space-between;">
+                                <a href="${favorite.url}" target="_blank" class="blue-text">방문</a>
+                                <div style="display: flex; gap: 10px;">
+                                    <a href="#!" class="edit-favorite-btn" data-index="${index}" data-category="${category}">
+                                        <i class="material-icons blue-text">edit</i>
+                                    </a>
+                                    <a href="#!" class="delete-favorite-btn" data-index="${index}" data-category="${category}">
+                                        <i class="material-icons red-text">delete</i>
+                                    </a>
                                 </div>
                             </div>
-                        </a>
+                        </div>
                     `;
                     favoritesList.appendChild(favoriteItem);
                 });
             });
+            
+            // 이벤트 핸들러 추가
+            document.querySelectorAll('.edit-favorite-btn').forEach(btn => {
+                btn.addEventListener('click', handleEditFavorite);
+            });
+            
+            document.querySelectorAll('.delete-favorite-btn').forEach(btn => {
+                btn.addEventListener('click', handleDeleteFavorite);
+            });
+        }
+        
+        // 즐겨찾기 추가 모달 열기
+        function openAddFavoriteModal() {
+            const modal = document.getElementById('favorite-modal');
+            document.getElementById('modal-title').textContent = '즐겨찾기 추가';
+            document.getElementById('favorite-form').reset();
+            document.getElementById('edit-index').value = '';
+            
+            // 기본 카테고리값 설정
+            document.getElementById('favorite-category').value = '미분류';
+            
+            // 모달 열기
+            const modalInstance = M.Modal.getInstance(modal);
+            modalInstance.open();
+        }
+        
+        // 즐겨찾기 편집 처리
+        function handleEditFavorite(e) {
+            e.preventDefault();
+            
+            const index = parseInt(e.currentTarget.dataset.index);
+            const category = e.currentTarget.dataset.category;
+            
+            // 해당 카테고리의 해당 인덱스 항목 찾기
+            let favoriteToEdit = null;
+            let globalIndex = -1;
+            let currentCatIndex = 0;
+            
+            for (let i = 0; i < favorites.length; i++) {
+                if ((favorites[i].category || '미분류') === category) {
+                    if (currentCatIndex === index) {
+                        favoriteToEdit = favorites[i];
+                        globalIndex = i;
+                        break;
+                    }
+                    currentCatIndex++;
+                }
+            }
+            
+            if (!favoriteToEdit) {
+                M.toast({html: '편집할 항목을 찾을 수 없습니다'});
+                return;
+            }
+            
+            // 모달 폼에 데이터 채우기
+            document.getElementById('modal-title').textContent = '즐겨찾기 수정';
+            document.getElementById('favorite-title').value = favoriteToEdit.title;
+            document.getElementById('favorite-url').value = favoriteToEdit.url;
+            document.getElementById('favorite-category').value = favoriteToEdit.category || '미분류';
+            document.getElementById('edit-index').value = globalIndex;
+            
+            // Material CSS 라벨 활성화
+            M.updateTextFields();
+            
+            // 모달 열기
+            const modal = document.getElementById('favorite-modal');
+            const modalInstance = M.Modal.getInstance(modal);
+            modalInstance.open();
+        }
+        
+        // 즐겨찾기 삭제 처리
+        function handleDeleteFavorite(e) {
+            e.preventDefault();
+            
+            const index = parseInt(e.currentTarget.dataset.index);
+            const category = e.currentTarget.dataset.category;
+            
+            // 해당 카테고리의 해당 인덱스 항목 찾기
+            let globalIndex = -1;
+            let currentCatIndex = 0;
+            
+            for (let i = 0; i < favorites.length; i++) {
+                if ((favorites[i].category || '미분류') === category) {
+                    if (currentCatIndex === index) {
+                        globalIndex = i;
+                        break;
+                    }
+                    currentCatIndex++;
+                }
+            }
+            
+            if (globalIndex === -1) {
+                M.toast({html: '삭제할 항목을 찾을 수 없습니다'});
+                return;
+            }
+            
+            // 삭제할 항목의 인덱스 설정
+            document.getElementById('delete-index').value = globalIndex;
+            
+            // 삭제 확인 모달 열기
+            const modal = document.getElementById('delete-modal');
+            const modalInstance = M.Modal.getInstance(modal);
+            modalInstance.open();
+        }
+        
+        // 즐겨찾기 저장 (추가 또는 수정)
+        function saveFavorite() {
+            const title = document.getElementById('favorite-title').value.trim();
+            const url = document.getElementById('favorite-url').value.trim();
+            const category = document.getElementById('favorite-category').value.trim() || '미분류';
+            const editIndex = document.getElementById('edit-index').value;
+            
+            if (!title || !url) {
+                M.toast({html: '모든 필드를 채워주세요'});
+                return;
+            }
+            
+            // URL 유효성 검사
+            let finalUrl = url;
+            if (!url.match(/^(http|https|ssh):\/\//)) {
+                if (url.includes('ssh')) {
+                    finalUrl = `ssh://${url}`;
+                } else {
+                    finalUrl = `https://${url}`;
+                }
+            }
+            
+            const newFavorite = {
+                title: title,
+                url: finalUrl,
+                category: category
+            };
+            
+            // URL 유형 감지
+            if (getUrlType(finalUrl) === 'ssh') {
+                newFavorite.type = 'ssh';
+            }
+            
+            if (editIndex !== '') {
+                // 기존 항목 수정
+                favorites[editIndex] = newFavorite;
+                M.toast({html: '즐겨찾기가 수정되었습니다'});
+            } else {
+                // 새 항목 추가
+                favorites.push(newFavorite);
+                M.toast({html: '새 즐겨찾기가 추가되었습니다'});
+            }
+            
+            // 변경사항 저장 및 표시 업데이트
+            displayFavorites();
+            
+            // Firebase에 저장 (로그인한 경우)
+            if (currentUser) {
+                saveFavoritesToFirebase();
+            } else {
+                // 로컬 스토리지에 저장
+                localStorage.setItem('favorites', JSON.stringify(favorites));
+            }
+            
+            // 모달 닫기
+            const modal = document.getElementById('favorite-modal');
+            const modalInstance = M.Modal.getInstance(modal);
+            modalInstance.close();
+        }
+        
+        // 즐겨찾기 삭제 확인
+        function confirmDeleteFavorite() {
+            const deleteIndex = parseInt(document.getElementById('delete-index').value);
+            
+            if (isNaN(deleteIndex) || deleteIndex < 0 || deleteIndex >= favorites.length) {
+                M.toast({html: '삭제할 항목을 찾을 수 없습니다'});
+                return;
+            }
+            
+            // 항목 삭제
+            favorites.splice(deleteIndex, 1);
+            
+            // 변경사항 저장 및 표시 업데이트
+            displayFavorites();
+            
+            // Firebase에 저장 (로그인한 경우)
+            if (currentUser) {
+                saveFavoritesToFirebase();
+            } else {
+                // 로컬 스토리지에 저장
+                localStorage.setItem('favorites', JSON.stringify(favorites));
+            }
+            
+            M.toast({html: '즐겨찾기가 삭제되었습니다'});
+            
+            // 모달 닫기
+            const modal = document.getElementById('delete-modal');
+            const modalInstance = M.Modal.getInstance(modal);
+            modalInstance.close();
+        }
+        
+        // 로컬 파일에서 즐겨찾기 데이터를 로드
+        function loadFavoritesFromLocal() {
+            // 로컬 스토리지에서 먼저 확인
+            const storedFavorites = localStorage.getItem('favorites');
+            if (storedFavorites) {
+                try {
+                    favorites = JSON.parse(storedFavorites);
+                    displayFavorites();
+                    updateFavoritesSyncStatus('로컬 스토리지에서 로드됨', '#777');
+                    return;
+                } catch (error) {
+                    console.error('로컬 스토리지 데이터 파싱 오류:', error);
+                }
+            }
+            
+            // 로컬 스토리지에 없으면 JSON 파일에서 로드
+            fetch('data/favorites.json')
+                .then(response => response.json())
+                .then(data => {
+                    favorites = data;
+                    displayFavorites();
+                    // 로컬 스토리지에 저장
+                    localStorage.setItem('favorites', JSON.stringify(favorites));
+                    updateFavoritesSyncStatus('로컬 데이터 로드됨', '#777');
+                })
+                .catch(error => {
+                    console.error('즐겨찾기 데이터를 불러오는 중 오류가 발생했습니다:', error);
+                    updateFavoritesSyncStatus('로컬 데이터 로드 오류', '#f44336');
+                });
         }
 
         // 시계 및 날짜 업데이트 함수
@@ -613,7 +1090,7 @@
             databaseURL: "https://gate-ec499-default-rtdb.firebaseio.com"
         };
         
-        // Firebase 초기화 및 메모 동기화 기능
+        // Firebase 초기화 및 인증 기능
         let isFirebaseInitialized = false;
         let currentUser = null;
         
@@ -640,9 +1117,7 @@
                 firebase.auth().onAuthStateChanged(user => {
                     if (user) {
                         currentUser = user;
-                        document.getElementById('memo-login').textContent = '로그아웃';
-                        document.getElementById('sync-status').textContent = '동기화됨';
-                        document.getElementById('sync-status').style.color = '#4caf50';
+                        updateUIForLoggedInUser(user);
                         
                         // 메모 불러오기
                         loadMemoFromFirebase();
@@ -654,9 +1129,7 @@
                         updateFavoritesSyncStatus('온라인 동기화 중', '#4caf50');
                     } else {
                         currentUser = null;
-                        document.getElementById('memo-login').textContent = '로그인';
-                        document.getElementById('sync-status').textContent = '오프라인 모드';
-                        document.getElementById('sync-status').style.color = '#777';
+                        updateUIForLoggedOutUser();
                         
                         // 로컬 즐겨찾기 불러오기
                         loadFavoritesFromLocal();
@@ -668,6 +1141,205 @@
             } catch (error) {
                 console.error('Firebase 초기화 오류:', error);
             }
+        }
+        
+        // 로그인 UI 업데이트
+        function updateUIForLoggedInUser(user) {
+            document.getElementById('login-container').style.display = 'none';
+            document.getElementById('user-profile').style.display = 'inline-block';
+            
+            // 사용자 정보 표시
+            if (user.photoURL) {
+                document.getElementById('user-photo').src = user.photoURL;
+                document.getElementById('user-photo').style.display = 'inline-block';
+            } else {
+                document.getElementById('user-photo').style.display = 'none';
+            }
+            
+            document.getElementById('user-name').textContent = user.displayName || user.email || '사용자';
+            
+            // 메모 UI 업데이트
+            document.getElementById('memo-login').textContent = '메모 저장';
+            document.getElementById('sync-status').textContent = '동기화됨';
+            document.getElementById('sync-status').style.color = '#4caf50';
+            
+            // 모달 닫기
+            const authModal = document.getElementById('auth-modal');
+            const modalInstance = M.Modal.getInstance(authModal);
+            if (modalInstance) modalInstance.close();
+            
+            M.toast({html: '로그인 되었습니다'});
+        }
+        
+        // 로그아웃 UI 업데이트
+        function updateUIForLoggedOutUser() {
+            document.getElementById('login-container').style.display = 'inline-block';
+            document.getElementById('user-profile').style.display = 'none';
+            
+            // 메모 UI 업데이트
+            document.getElementById('memo-login').textContent = '저장';
+            document.getElementById('sync-status').textContent = '오프라인 모드';
+            document.getElementById('sync-status').style.color = '#777';
+        }
+        
+        // 이메일/비밀번호 로그인
+        function loginWithEmailPassword(email, password) {
+            if (!isFirebaseInitialized) {
+                M.toast({html: 'Firebase 연결 오류. 나중에 다시 시도해주세요.'});
+                return Promise.reject(new Error('Firebase가 초기화되지 않았습니다.'));
+            }
+            
+            return firebase.auth().signInWithEmailAndPassword(email, password)
+                .catch(error => {
+                    console.error('로그인 오류:', error);
+                    let errorMessage = '로그인 중 오류가 발생했습니다.';
+                    
+                    switch (error.code) {
+                        case 'auth/invalid-email':
+                            errorMessage = '유효하지 않은 이메일 형식입니다.';
+                            break;
+                        case 'auth/user-disabled':
+                            errorMessage = '계정이 비활성화되었습니다.';
+                            break;
+                        case 'auth/user-not-found':
+                            errorMessage = '등록되지 않은 이메일입니다.';
+                            break;
+                        case 'auth/wrong-password':
+                            errorMessage = '비밀번호가 일치하지 않습니다.';
+                            break;
+                    }
+                    
+                    M.toast({html: errorMessage});
+                    throw error;
+                });
+        }
+        
+        // Google 로그인
+        function loginWithGoogle() {
+            if (!isFirebaseInitialized) {
+                M.toast({html: 'Firebase 연결 오류. 나중에 다시 시도해주세요.'});
+                return Promise.reject(new Error('Firebase가 초기화되지 않았습니다.'));
+            }
+            
+            const provider = new firebase.auth.GoogleAuthProvider();
+            return firebase.auth().signInWithPopup(provider)
+                .catch(error => {
+                    console.error('Google 로그인 오류:', error);
+                    M.toast({html: 'Google 로그인 중 오류가 발생했습니다.'});
+                    throw error;
+                });
+        }
+        
+        // 회원가입
+        function registerWithEmailPassword(name, email, password) {
+            if (!isFirebaseInitialized) {
+                M.toast({html: 'Firebase 연결 오류. 나중에 다시 시도해주세요.'});
+                return Promise.reject(new Error('Firebase가 초기화되지 않았습니다.'));
+            }
+            
+            return firebase.auth().createUserWithEmailAndPassword(email, password)
+                .then(userCredential => {
+                    // 사용자 프로필 업데이트
+                    return userCredential.user.updateProfile({
+                        displayName: name
+                    }).then(() => userCredential);
+                })
+                .catch(error => {
+                    console.error('회원가입 오류:', error);
+                    let errorMessage = '회원가입 중 오류가 발생했습니다.';
+                    
+                    switch (error.code) {
+                        case 'auth/email-already-in-use':
+                            errorMessage = '이미 사용 중인 이메일입니다.';
+                            break;
+                        case 'auth/invalid-email':
+                            errorMessage = '유효하지 않은 이메일 형식입니다.';
+                            break;
+                        case 'auth/weak-password':
+                            errorMessage = '비밀번호가 너무 약합니다.';
+                            break;
+                    }
+                    
+                    M.toast({html: errorMessage});
+                    throw error;
+                });
+        }
+        
+        // 로그아웃
+        function logout() {
+            if (!isFirebaseInitialized) {
+                M.toast({html: 'Firebase 연결 오류. 나중에 다시 시도해주세요.'});
+                return Promise.reject(new Error('Firebase가 초기화되지 않았습니다.'));
+            }
+            
+            return firebase.auth().signOut()
+                .then(() => {
+                    M.toast({html: '로그아웃되었습니다'});
+                })
+                .catch(error => {
+                    console.error('로그아웃 오류:', error);
+                    M.toast({html: '로그아웃 처리 중 오류가 발생했습니다'});
+                    throw error;
+                });
+        }
+        
+        // 인증 상태 확인
+        function checkAuthState() {
+            return new Promise((resolve, reject) => {
+                if (!isFirebaseInitialized) {
+                    reject(new Error('Firebase가 초기화되지 않았습니다.'));
+                    return;
+                }
+                
+                const unsubscribe = firebase.auth().onAuthStateChanged(user => {
+                    unsubscribe();
+                    resolve(user);
+                }, reject);
+            });
+        }
+        
+        // 인증 기능 초기화
+        function initAuth() {
+            // 로그인 폼 제출 이벤트
+            document.getElementById('login-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const email = document.getElementById('login-email').value;
+                const password = document.getElementById('login-password').value;
+                
+                loginWithEmailPassword(email, password);
+            });
+            
+            // 회원가입 폼 제출 이벤트
+            document.getElementById('register-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const name = document.getElementById('register-name').value;
+                const email = document.getElementById('register-email').value;
+                const password = document.getElementById('register-password').value;
+                const passwordConfirm = document.getElementById('register-password-confirm').value;
+                
+                if (password !== passwordConfirm) {
+                    M.toast({html: '비밀번호가 일치하지 않습니다.'});
+                    return;
+                }
+                
+                registerWithEmailPassword(name, email, password);
+            });
+            
+            // Google 로그인 버튼 이벤트
+            document.getElementById('google-login-btn').addEventListener('click', function() {
+                loginWithGoogle();
+            });
+            
+            // 로그아웃 버튼 이벤트
+            document.getElementById('logout-btn').addEventListener('click', function() {
+                logout();
+            });
+            
+            // 탭 초기화
+            const tabs = document.querySelectorAll('.tabs');
+            M.Tabs.init(tabs);
         }
         
         // 즐겨찾기 동기화 상태 업데이트 함수
@@ -913,6 +1585,9 @@
             // Firebase 초기화
             initFirebase();
             
+            // 인증 기능 초기화
+            initAuth();
+            
             // 시계 초기화 및 1초마다 업데이트
             updateClock();
             setInterval(updateClock, 1000);
@@ -927,8 +1602,18 @@
             setRandomBackground();
             setInterval(setRandomBackground, 30000);
             
-            // 즐겨찾기 데이터 로드는 onAuthStateChanged 이벤트에서 처리됨
-            // 따라서 loadFavorites() 직접 호출 불필요
+            // 모달 초기화
+            const modals = document.querySelectorAll('.modal');
+            M.Modal.init(modals);
+            
+            // 즐겨찾기 추가 버튼 이벤트 리스너
+            document.getElementById('add-favorite-btn').addEventListener('click', openAddFavoriteModal);
+            
+            // 즐겨찾기 저장 버튼 이벤트 리스너
+            document.getElementById('save-favorite-btn').addEventListener('click', saveFavorite);
+            
+            // 즐겨찾기 삭제 확인 버튼 이벤트 리스너
+            document.getElementById('confirm-delete-btn').addEventListener('click', confirmDeleteFavorite);
         };
     </script>
 </body>
