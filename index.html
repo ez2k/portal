@@ -1697,13 +1697,24 @@
         
         // Firebase에 메모 저장
         function saveMemoToFirebase(content) {
+            // 불필요한 저장 요청 무시 (내용이 비어있거나 이전과 동일한 경우)
+            const lastSavedMemo = localStorage.getItem('quickMemo');
+            if (content === lastSavedMemo) {
+                console.log('메모 내용이 변경되지 않아 저장을 건너뜁니다.');
+                document.getElementById('sync-status').textContent = '변경사항 없음';
+                document.getElementById('sync-status').style.color = '#777';
+                return;
+            }
+            
+            // 로컬 스토리지에 저장 (백업)
+            localStorage.setItem('quickMemo', content);
+            
             if (!currentUser) {
-                // 로컬 스토리지에 저장
-                localStorage.setItem('quickMemo', content);
                 M.toast({html: '메모가 로컬에 저장되었습니다'});
                 return;
             }
             
+            console.log('메모 저장 시작');
             const userId = currentUser.uid;
             firebase.database().ref('memos/' + userId).set({
                 content: content,
@@ -1711,15 +1722,13 @@
             })
             .then(() => {
                 document.getElementById('sync-status').textContent = '동기화됨';
-                M.toast({html: '메모가 온라인에 동기화되었습니다'});
+                document.getElementById('sync-status').style.color = '#4caf50';
+                console.log('메모 저장 완료');
             })
             .catch(error => {
                 console.error('메모 저장 오류:', error);
                 document.getElementById('sync-status').textContent = '동기화 실패';
                 document.getElementById('sync-status').style.color = '#f44336';
-                
-                // 오류 시 로컬 스토리지에 백업
-                localStorage.setItem('quickMemo', content);
                 M.toast({html: '온라인 저장 실패, 로컬에 백업되었습니다'});
             });
         }
@@ -1736,9 +1745,20 @@
                 memoContent.value = savedMemo;
             }
             
+            // 메모 저장 중복 방지를 위한 플래그
+            let isSaving = false;
+            
             // 저장 버튼 이벤트 핸들러
             memoSaveBtn.addEventListener('click', () => {
+                if (isSaving) return; // 이미 저장 중이면 중복 호출 방지
+                
+                isSaving = true;
                 saveMemoToFirebase(memoContent.value);
+                
+                // 저장 후 약간의 시간 동안 추가 저장 방지 (blur 이벤트에 의한 중복 저장 방지)
+                setTimeout(() => {
+                    isSaving = false;
+                }, 1000);
             });
             
             // 로그인 버튼 이벤트 핸들러
@@ -1746,6 +1766,9 @@
             
             // 자동 저장
             memoContent.addEventListener('blur', () => {
+                // 이미 저장 중이면 중복 저장 방지
+                if (isSaving) return;
+                
                 // 오프라인이면 로컬 스토리지에만 저장
                 if (!currentUser) {
                     localStorage.setItem('quickMemo', memoContent.value);
@@ -1753,13 +1776,16 @@
                 }
                 
                 // 온라인이면 Firebase에 저장
+                isSaving = true;
                 document.getElementById('sync-status').textContent = '동기화 중...';
                 document.getElementById('sync-status').style.color = '#ff9800';
                 saveMemoToFirebase(memoContent.value);
+                
+                // 저장 완료 후 플래그 해제
+                setTimeout(() => {
+                    isSaving = false;
+                }, 1000);
             });
-            
-            // Firebase 초기화 호출 제거 (중복 방지)
-            // initFirebase(); - 이 부분 제거
         }
         
         // 페이지 로드 시 실행할 함수들
