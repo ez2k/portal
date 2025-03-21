@@ -1597,9 +1597,9 @@
             // 메모 기능 초기화
             initMemo();
             
-            // 배경 이미지 설정
+            // 배경 이미지 설정 (한 번만 실행, 자동 리프레시 제거)
             setRandomBackground();
-            setInterval(setRandomBackground, 30000);
+            // setInterval(setRandomBackground, 30000); - 자동 배경 변경 비활성화
             
             // 모달 초기화
             const modals = document.querySelectorAll('.modal');
