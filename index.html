@@ -1228,22 +1228,17 @@
             }
         }
 
-        // Firebase 초기화
-        const firebaseConfig = {
-            apiKey: "AIzaSyCqStQu5WgnsgdMRyUgvkpZqQx6dMQMQjs",
-            authDomain: "gate-ec499.firebaseapp.com",
-            databaseURL: "https://gate-ec499-default-rtdb.asia-southeast1.firebasedatabase.app",
-            projectId: "gate-ec499",
-            storageBucket: "gate-ec499.firebasestorage.app",
-            messagingSenderId: "591449889520",
-            appId: "1:591449889520:web:6b0f2dddd461663fcbc035",
-        };
-        
         // Firebase 초기화 및 인증 기능
         let isFirebaseInitialized = false;
         let currentUser = null;
         
         function initFirebase() {
+            // 이미 초기화되었다면 중복 실행 방지
+            if (isFirebaseInitialized) {
+                console.log('Firebase가 이미 초기화되어 있어 중복 실행을 건너뜁니다.');
+                return;
+            }
+            
             try {
                 // Firebase 객체가 있는지 확인
                 if (typeof firebase === 'undefined') {
@@ -1262,8 +1257,10 @@
                     isFirebaseInitialized = true;
                 }
                 
-                // 로그인 상태 변화 감지
+                // 로그인 상태 변화 감지 리스너는 한 번만 등록
                 firebase.auth().onAuthStateChanged(user => {
+                    console.log('Auth state changed:', user ? `Logged in as ${user.email}` : 'Logged out');
+                    
                     if (user) {
                         currentUser = user;
                         updateUIForLoggedInUser(user);
@@ -1338,7 +1335,13 @@
                 return Promise.reject(new Error('Firebase가 초기화되지 않았습니다.'));
             }
             
+            console.log('로그인 시도:', email);
+            
             return firebase.auth().signInWithEmailAndPassword(email, password)
+                .then(result => {
+                    console.log('로그인 성공:', result.user.email);
+                    return result;
+                })
                 .catch(error => {
                     console.error('로그인 오류:', error);
                     let errorMessage = '로그인 중 오류가 발생했습니다.';
@@ -1447,48 +1450,67 @@
             });
         }
         
-        // 인증 기능 초기화
+        // 인증 기능 초기화 - 이벤트 리스너 중복 등록 방지
         function initAuth() {
-            // 로그인 폼 제출 이벤트
-            document.getElementById('login-form').addEventListener('submit', function(e) {
-                e.preventDefault();
-                
-                const email = document.getElementById('login-email').value;
-                const password = document.getElementById('login-password').value;
-                
-                loginWithEmailPassword(email, password);
-            });
+            // 이미 이벤트 리스너가 등록되어 있는지 확인
+            const loginForm = document.getElementById('login-form');
+            const registerForm = document.getElementById('register-form');
+            const googleLoginBtn = document.getElementById('google-login-btn');
+            const logoutBtn = document.getElementById('logout-btn');
             
-            // 회원가입 폼 제출 이벤트
-            document.getElementById('register-form').addEventListener('submit', function(e) {
-                e.preventDefault();
-                
-                const name = document.getElementById('register-name').value;
-                const email = document.getElementById('register-email').value;
-                const password = document.getElementById('register-password').value;
-                const passwordConfirm = document.getElementById('register-password-confirm').value;
-                
-                if (password !== passwordConfirm) {
-                    M.toast({html: '비밀번호가 일치하지 않습니다.'});
-                    return;
-                }
-                
-                registerWithEmailPassword(name, email, password);
-            });
+            // 기존 이벤트 리스너 제거 후 새로 등록
+            loginForm.removeEventListener('submit', handleLoginFormSubmit);
+            loginForm.addEventListener('submit', handleLoginFormSubmit);
             
-            // Google 로그인 버튼 이벤트
-            document.getElementById('google-login-btn').addEventListener('click', function() {
-                loginWithGoogle();
-            });
+            registerForm.removeEventListener('submit', handleRegisterFormSubmit);
+            registerForm.addEventListener('submit', handleRegisterFormSubmit);
             
-            // 로그아웃 버튼 이벤트
-            document.getElementById('logout-btn').addEventListener('click', function() {
-                logout();
-            });
+            googleLoginBtn.removeEventListener('click', handleGoogleLogin);
+            googleLoginBtn.addEventListener('click', handleGoogleLogin);
+            
+            logoutBtn.removeEventListener('click', handleLogout);
+            logoutBtn.addEventListener('click', handleLogout);
             
             // 탭 초기화
             const tabs = document.querySelectorAll('.tabs');
             M.Tabs.init(tabs);
+        }
+        
+        // 로그인 폼 제출 핸들러
+        function handleLoginFormSubmit(e) {
+            e.preventDefault();
+            
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            
+            loginWithEmailPassword(email, password);
+        }
+        
+        // 회원가입 폼 제출 핸들러
+        function handleRegisterFormSubmit(e) {
+            e.preventDefault();
+            
+            const name = document.getElementById('register-name').value;
+            const email = document.getElementById('register-email').value;
+            const password = document.getElementById('register-password').value;
+            const passwordConfirm = document.getElementById('register-password-confirm').value;
+            
+            if (password !== passwordConfirm) {
+                M.toast({html: '비밀번호가 일치하지 않습니다.'});
+                return;
+            }
+            
+            registerWithEmailPassword(name, email, password);
+        }
+        
+        // Google 로그인 핸들러
+        function handleGoogleLogin() {
+            loginWithGoogle();
+        }
+        
+        // 로그아웃 핸들러
+        function handleLogout() {
+            logout();
         }
         
         // 즐겨찾기 동기화 상태 업데이트 함수
@@ -1725,8 +1747,8 @@
                 saveMemoToFirebase(memoContent.value);
             });
             
-            // Firebase 초기화 실행
-            initFirebase();
+            // Firebase 초기화 호출 제거 (중복 방지)
+            // initFirebase(); - 이 부분 제거
         }
         
         // 페이지 로드 시 실행할 함수들
