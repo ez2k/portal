@@ -308,9 +308,13 @@
             <div class="widget memo-widget">
                 <div class="memo-title">
                     <h3>간단 메모</h3>
-                    <button class="memo-save" id="memo-save">저장</button>
+                    <div>
+                        <button class="memo-save" id="memo-login">로그인</button>
+                        <button class="memo-save" id="memo-save">저장</button>
+                    </div>
                 </div>
                 <textarea class="memo-content" id="memo-content" placeholder="여기에 간단한 메모를 작성하세요..."></textarea>
+                <p id="sync-status" style="margin: 5px 0 0; font-size: 0.8rem; color: #777; text-align: right;">오프라인 모드</p>
             </div>
         </div>
         
@@ -318,7 +322,19 @@
         <div id="favorites-list" class="row">
             <!-- 즐겨찾기 목록이 여기에 표시됩니다 -->
         </div>
+        
+        <!-- 동기화 상태 표시 -->
+        <div class="center-align" style="margin-bottom: 20px;">
+            <p id="favorites-sync-status" style="font-size: 0.9rem; color: #777;">
+                즐겨찾기 데이터: 로컬 모드
+            </p>
+        </div>
     </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 
     <!-- Materialize JS CDN -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
@@ -483,8 +499,35 @@
         
         // 날씨 정보 업데이트 함수
         function updateWeather() {
+            // 캐시된 날씨 데이터 확인
+            const cachedWeather = localStorage.getItem('weatherData');
+            const lastUpdate = localStorage.getItem('weatherLastUpdate');
+            const now = new Date().getTime();
+            
+            // 마지막 업데이트 이후 경과 시간 체크 (1시간 = 3600000 밀리초)
+            const ONE_HOUR = 3600000;
+            
+            // 캐시된 데이터가 있고 1시간이 지나지 않았으면 캐시 사용
+            if (cachedWeather && lastUpdate && (now - parseInt(lastUpdate) < ONE_HOUR)) {
+                try {
+                    const weatherData = JSON.parse(cachedWeather);
+                    displayWeatherData(weatherData);
+                    
+                    // 마지막 업데이트 시간 표시
+                    const minutesAgo = Math.floor((now - parseInt(lastUpdate)) / 60000);
+                    document.getElementById('weather-location').textContent = 
+                        `${weatherData.location} (${minutesAgo}분 전 업데이트)`;
+                    
+                    console.log('캐시된 날씨 데이터 사용 (마지막 업데이트: ' + minutesAgo + '분 전)');
+                    return;
+                } catch (error) {
+                    console.error('캐시된 날씨 데이터 파싱 오류:', error);
+                    // 캐시 파싱 오류 시 새로운 데이터 가져오기
+                }
+            }
+            
             // OpenWeatherMap API 키
-            const apiKey = '3e90cca650fa79843889da92d5e8c96a';
+            const apiKey = 'cd226d48c6724e526e3ecb47d9d4e82b';
             
             // 위치 정보 가져오기
             if (navigator.geolocation) {
@@ -497,44 +540,330 @@
                         fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric&lang=kr`)
                             .then(response => response.json())
                             .then(data => {
-                                // 온도 업데이트
-                                const temp = Math.round(data.main.temp);
-                                document.getElementById('temperature').textContent = `${temp}°C`;
+                                // 날씨 데이터 표시
+                                displayWeatherData(data);
                                 
-                                // 날씨 설명 업데이트
-                                const description = data.weather[0].description;
-                                document.getElementById('weather-description').textContent = description;
+                                // 날씨 데이터와 마지막 업데이트 시간 캐싱
+                                const weatherData = {
+                                    temp: Math.round(data.main.temp),
+                                    description: data.weather[0].description,
+                                    icon: data.weather[0].icon,
+                                    location: data.name
+                                };
                                 
-                                // 날씨 아이콘 업데이트
-                                const iconCode = data.weather[0].icon;
-                                const iconUrl = `https://openweathermap.org/img/wn/${iconCode}@2x.png`;
-                                document.getElementById('weather-icon').src = iconUrl;
+                                localStorage.setItem('weatherData', JSON.stringify(weatherData));
+                                localStorage.setItem('weatherLastUpdate', now.toString());
                                 
-                                // 위치 업데이트
-                                const cityName = data.name;
-                                document.getElementById('weather-location').textContent = cityName;
+                                console.log('새로운 날씨 데이터 가져옴');
                             })
                             .catch(error => {
                                 console.error('날씨 정보를 가져오는 중 오류 발생:', error);
-                                document.getElementById('weather-description').textContent = '날씨 정보를 불러올 수 없습니다';
+                                document.getElementById('weather-description').textContent = 
+                                    '날씨 정보를 불러올 수 없습니다';
                             });
                     },
                     (error) => {
                         console.error('위치 정보를 가져오는 중 오류 발생:', error);
-                        document.getElementById('weather-location').textContent = '위치 정보를 사용할 수 없습니다';
+                        document.getElementById('weather-location').textContent = 
+                            '위치 정보를 사용할 수 없습니다';
                     }
                 );
             } else {
-                document.getElementById('weather-location').textContent = '위치 정보가 지원되지 않는 브라우저입니다';
+                document.getElementById('weather-location').textContent = 
+                    '위치 정보가 지원되지 않는 브라우저입니다';
             }
+        }
+        
+        // 날씨 데이터 표시 함수 (API 결과 또는 캐시 데이터 둘 다 처리)
+        function displayWeatherData(data) {
+            // API 응답 직접 처리하는 경우
+            if (data.main && data.weather) {
+                const temp = Math.round(data.main.temp);
+                document.getElementById('temperature').textContent = `${temp}°C`;
+                
+                const description = data.weather[0].description;
+                document.getElementById('weather-description').textContent = description;
+                
+                const iconCode = data.weather[0].icon;
+                const iconUrl = `https://openweathermap.org/img/wn/${iconCode}@2x.png`;
+                document.getElementById('weather-icon').src = iconUrl;
+                
+                const cityName = data.name;
+                document.getElementById('weather-location').textContent = cityName;
+            } 
+            // 캐시된 데이터 처리하는 경우
+            else if (data.temp !== undefined) {
+                document.getElementById('temperature').textContent = `${data.temp}°C`;
+                document.getElementById('weather-description').textContent = data.description;
+                document.getElementById('weather-icon').src = 
+                    `https://openweathermap.org/img/wn/${data.icon}@2x.png`;
+                document.getElementById('weather-location').textContent = data.location;
+            }
+        }
+
+        // Firebase 초기화
+        const firebaseConfig = {
+            apiKey: "AIzaSyCqStQu5WgnsgdMRyUgvkpZqQx6dMQMQjs",
+            authDomain: "gate-ec499.firebaseapp.com",
+            projectId: "gate-ec499",
+            storageBucket: "gate-ec499.firebasestorage.app",
+            messagingSenderId: "123456789012",
+            appId: "1:591449889520:web:cff5db3899c3cbcfcbc035",
+            measurementId: "G-SJLG3D6VYH",
+            databaseURL: "https://gate-ec499-default-rtdb.firebaseio.com"
+        };
+        
+        // Firebase 초기화 및 메모 동기화 기능
+        let firebase;
+        let isFirebaseInitialized = false;
+        let currentUser = null;
+        
+        function initFirebase() {
+            try {
+                firebase = firebase.initializeApp(firebaseConfig);
+                isFirebaseInitialized = true;
+                
+                // 로그인 상태 변화 감지
+                firebase.auth().onAuthStateChanged(user => {
+                    if (user) {
+                        currentUser = user;
+                        document.getElementById('memo-login').textContent = '로그아웃';
+                        document.getElementById('sync-status').textContent = '동기화됨';
+                        document.getElementById('sync-status').style.color = '#4caf50';
+                        
+                        // 메모 불러오기
+                        loadMemoFromFirebase();
+                        
+                        // 즐겨찾기 불러오기
+                        loadFavoritesFromFirebase();
+                        
+                        // 즐겨찾기 동기화 상태 업데이트
+                        updateFavoritesSyncStatus('온라인 동기화 중', '#4caf50');
+                    } else {
+                        currentUser = null;
+                        document.getElementById('memo-login').textContent = '로그인';
+                        document.getElementById('sync-status').textContent = '오프라인 모드';
+                        document.getElementById('sync-status').style.color = '#777';
+                        
+                        // 로컬 즐겨찾기 불러오기
+                        loadFavoritesFromLocal();
+                        
+                        // 즐겨찾기 동기화 상태 업데이트
+                        updateFavoritesSyncStatus('로컬 모드', '#777');
+                    }
+                });
+            } catch (error) {
+                console.error('Firebase 초기화 오류:', error);
+            }
+        }
+        
+        // 즐겨찾기 동기화 상태 업데이트 함수
+        function updateFavoritesSyncStatus(message, color) {
+            const statusElement = document.getElementById('favorites-sync-status');
+            statusElement.textContent = `즐겨찾기 데이터: ${message}`;
+            statusElement.style.color = color;
+        }
+        
+        // Firebase에서 즐겨찾기 불러오기
+        function loadFavoritesFromFirebase() {
+            if (!currentUser) {
+                loadFavoritesFromLocal();
+                return;
+            }
+            
+            updateFavoritesSyncStatus('불러오는 중...', '#ff9800');
+            
+            const userId = currentUser.uid;
+            firebase.database().ref('favorites/' + userId).once('value')
+                .then(snapshot => {
+                    const data = snapshot.val();
+                    if (data && Array.isArray(data.items)) {
+                        favorites = data.items;
+                        displayFavorites();
+                        updateFavoritesSyncStatus('온라인 동기화됨', '#4caf50');
+                    } else {
+                        // 사용자의 즐겨찾기 데이터가 없으면 기본 데이터를 초기화하고 저장
+                        loadFavoritesFromLocal();
+                        saveFavoritesToFirebase();
+                    }
+                })
+                .catch(error => {
+                    console.error('즐겨찾기 불러오기 오류:', error);
+                    updateFavoritesSyncStatus('동기화 오류, 로컬 데이터 사용', '#f44336');
+                    loadFavoritesFromLocal();
+                });
+        }
+        
+        // Firebase에 즐겨찾기 저장
+        function saveFavoritesToFirebase() {
+            if (!currentUser) {
+                return;
+            }
+            
+            updateFavoritesSyncStatus('저장 중...', '#ff9800');
+            
+            const userId = currentUser.uid;
+            firebase.database().ref('favorites/' + userId).set({
+                items: favorites,
+                updatedAt: new Date().toISOString()
+            })
+            .then(() => {
+                updateFavoritesSyncStatus('온라인 동기화됨', '#4caf50');
+            })
+            .catch(error => {
+                console.error('즐겨찾기 저장 오류:', error);
+                updateFavoritesSyncStatus('동기화 오류', '#f44336');
+            });
+        }
+        
+        // 로컬 파일에서 즐겨찾기 데이터를 로드
+        function loadFavoritesFromLocal() {
+            fetch('data/favorites.json')
+                .then(response => response.json())
+                .then(data => {
+                    favorites = data;
+                    displayFavorites();
+                    updateFavoritesSyncStatus('로컬 데이터 로드됨', '#777');
+                })
+                .catch(error => {
+                    console.error('즐겨찾기 데이터를 불러오는 중 오류가 발생했습니다:', error);
+                    updateFavoritesSyncStatus('로컬 데이터 로드 오류', '#f44336');
+                });
+        }
+        
+        // 기존 loadFavorites 함수 대체
+        function loadFavorites() {
+            if (currentUser) {
+                loadFavoritesFromFirebase();
+            } else {
+                loadFavoritesFromLocal();
+            }
+        }
+        
+        // 카테고리 추가/편집 함수 (예시)
+        function addCategory(categoryName) {
+            // 카테고리 추가 로직...
+            // ...
+            
+            // 데이터 변경 후 Firebase에 저장
+            if (currentUser) {
+                saveFavoritesToFirebase();
+            }
+        }
+        
+        // 즐겨찾기 추가 함수 (예시)
+        function addFavorite(title, url, category) {
+            favorites.push({
+                title: title,
+                url: url,
+                category: category || '미분류'
+            });
+            
+            displayFavorites();
+            
+            // Firebase에 변경사항 저장
+            if (currentUser) {
+                saveFavoritesToFirebase();
+            }
+        }
+        
+        // 즐겨찾기 삭제 함수 (예시)
+        function removeFavorite(index, category) {
+            // 해당 카테고리의 특정 인덱스 항목 찾아 삭제하는 로직
+            // ...
+            
+            displayFavorites();
+            
+            // Firebase에 변경사항 저장
+            if (currentUser) {
+                saveFavoritesToFirebase();
+            }
+        }
+        
+        // 로그인/로그아웃 함수
+        function toggleAuth() {
+            if (!isFirebaseInitialized) {
+                M.toast({html: 'Firebase 연결 오류. 나중에 다시 시도해주세요.'});
+                return;
+            }
+            
+            if (currentUser) {
+                // 로그아웃 처리
+                firebase.auth().signOut()
+                    .then(() => {
+                        M.toast({html: '로그아웃되었습니다'});
+                    })
+                    .catch(error => {
+                        console.error('로그아웃 오류:', error);
+                        M.toast({html: '로그아웃 처리 중 오류가 발생했습니다'});
+                    });
+            } else {
+                // 익명 로그인 처리
+                firebase.auth().signInAnonymously()
+                    .then(() => {
+                        M.toast({html: '온라인 동기화가 활성화되었습니다'});
+                    })
+                    .catch(error => {
+                        console.error('로그인 오류:', error);
+                        M.toast({html: '로그인 처리 중 오류가 발생했습니다'});
+                    });
+            }
+        }
+        
+        // Firebase에서 메모 불러오기
+        function loadMemoFromFirebase() {
+            if (!currentUser) return;
+            
+            const userId = currentUser.uid;
+            firebase.database().ref('memos/' + userId).once('value')
+                .then(snapshot => {
+                    const data = snapshot.val();
+                    if (data && data.content) {
+                        document.getElementById('memo-content').value = data.content;
+                    }
+                })
+                .catch(error => {
+                    console.error('메모 불러오기 오류:', error);
+                    M.toast({html: '메모를 불러오는 중 오류가 발생했습니다'});
+                });
+        }
+        
+        // Firebase에 메모 저장
+        function saveMemoToFirebase(content) {
+            if (!currentUser) {
+                // 로컬 스토리지에 저장
+                localStorage.setItem('quickMemo', content);
+                M.toast({html: '메모가 로컬에 저장되었습니다'});
+                return;
+            }
+            
+            const userId = currentUser.uid;
+            firebase.database().ref('memos/' + userId).set({
+                content: content,
+                updatedAt: new Date().toISOString()
+            })
+            .then(() => {
+                document.getElementById('sync-status').textContent = '동기화됨';
+                M.toast({html: '메모가 온라인에 동기화되었습니다'});
+            })
+            .catch(error => {
+                console.error('메모 저장 오류:', error);
+                document.getElementById('sync-status').textContent = '동기화 실패';
+                document.getElementById('sync-status').style.color = '#f44336';
+                
+                // 오류 시 로컬 스토리지에 백업
+                localStorage.setItem('quickMemo', content);
+                M.toast({html: '온라인 저장 실패, 로컬에 백업되었습니다'});
+            });
         }
         
         // 메모 기능 초기화
         function initMemo() {
             const memoContent = document.getElementById('memo-content');
             const memoSaveBtn = document.getElementById('memo-save');
+            const memoLoginBtn = document.getElementById('memo-login');
             
-            // 저장된 메모 불러오기
+            // 저장된 메모 불러오기 (로컬)
             const savedMemo = localStorage.getItem('quickMemo');
             if (savedMemo) {
                 memoContent.value = savedMemo;
@@ -542,19 +871,34 @@
             
             // 저장 버튼 이벤트 핸들러
             memoSaveBtn.addEventListener('click', () => {
-                localStorage.setItem('quickMemo', memoContent.value);
-                M.toast({html: '메모가 저장되었습니다!'});
+                saveMemoToFirebase(memoContent.value);
             });
             
-            // 자동 저장 (옵션)
+            // 로그인 버튼 이벤트 핸들러
+            memoLoginBtn.addEventListener('click', toggleAuth);
+            
+            // 자동 저장
             memoContent.addEventListener('blur', () => {
-                localStorage.setItem('quickMemo', memoContent.value);
+                // 오프라인이면 로컬 스토리지에만 저장
+                if (!currentUser) {
+                    localStorage.setItem('quickMemo', memoContent.value);
+                    return;
+                }
+                
+                // 온라인이면 Firebase에 저장
+                document.getElementById('sync-status').textContent = '동기화 중...';
+                document.getElementById('sync-status').style.color = '#ff9800';
+                saveMemoToFirebase(memoContent.value);
             });
+            
+            // Firebase 초기화 실행
+            initFirebase();
         }
         
         // 페이지 로드 시 실행할 함수들
         window.onload = function() {
-            loadFavorites();
+            // Firebase 초기화
+            initFirebase();
             
             // 시계 초기화 및 1초마다 업데이트
             updateClock();
@@ -568,8 +912,10 @@
             
             // 배경 이미지 설정
             setRandomBackground();
-            // 30초마다 배경 이미지 변경 (선택적)
             setInterval(setRandomBackground, 30000);
+            
+            // 즐겨찾기 데이터 로드는 onAuthStateChanged 이벤트에서 처리됨
+            // 따라서 loadFavorites() 직접 호출 불필요
         };
     </script>
 </body>
