@@ -574,6 +574,8 @@
 
     <!-- Materialize JS CDN -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    <!-- Sortable.js 라이브러리 추가 -->
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <script>
         // 배경 이미지 목록 - 직접 URL 사용
         const backgroundImages = [
@@ -676,11 +678,26 @@
             
             // 각 카테고리에 대해
             Object.keys(groupedFavorites).forEach(category => {
+                // 카테고리 컨테이너 생성
+                const categoryContainer = document.createElement('div');
+                categoryContainer.className = 'category-container';
+                categoryContainer.dataset.category = category;
+                
                 // 카테고리 헤더 추가
                 const categoryHeader = document.createElement('div');
-                categoryHeader.className = 'col s12';
-                categoryHeader.innerHTML = `<h3 class="category-header">${category}</h3>`;
-                favoritesList.appendChild(categoryHeader);
+                categoryHeader.className = 'col s12 category-header-container';
+                categoryHeader.innerHTML = `
+                    <div class="category-header-wrapper" style="display: flex; align-items: center;">
+                        <i class="material-icons category-drag-handle" style="cursor: move; margin-right: 10px; color: #29b6f6;">drag_indicator</i>
+                        <h3 class="category-header">${category}</h3>
+                    </div>
+                `;
+                categoryContainer.appendChild(categoryHeader);
+                
+                // 카테고리 내 항목 컨테이너
+                const itemsContainer = document.createElement('div');
+                itemsContainer.className = 'category-items row';
+                itemsContainer.dataset.category = category;
                 
                 // 해당 카테고리의 즐겨찾기 항목 표시
                 groupedFavorites[category].forEach((favorite, index) => {
@@ -689,12 +706,14 @@
                     const isSsh = urlType === 'ssh';
                     
                     const favoriteItem = document.createElement('div');
-                    favoriteItem.className = 'col s12 m6 l4';
+                    favoriteItem.className = 'col s12 m6 l4 favorite-item';
+                    favoriteItem.dataset.index = index;
                     favoriteItem.innerHTML = `
                         <div class="card ${isSsh ? 'ssh-card' : ''}">
                             <div class="card-content">
                                 <div style="display: flex; justify-content: space-between; align-items: flex-start;">
                                     <div style="display: flex; align-items: flex-start;">
+                                        <i class="material-icons item-drag-handle" style="cursor: move; margin-right: 5px; color: #29b6f6;">drag_indicator</i>
                                         <img src="${iconUrl}" alt="${favorite.title} 아이콘" class="site-icon ${isSsh ? 'ssh-icon' : ''}">
                                         <div class="site-info">
                                             <span class="card-title">${favorite.title}</span>
@@ -720,9 +739,18 @@
                             </div>
                         </div>
                     `;
-                    favoritesList.appendChild(favoriteItem);
+                    itemsContainer.appendChild(favoriteItem);
                 });
+                
+                categoryContainer.appendChild(itemsContainer);
+                favoritesList.appendChild(categoryContainer);
+                
+                // 카테고리 내 항목에 대한 Sortable 초기화
+                initSortableItems(itemsContainer, category);
             });
+            
+            // 카테고리에 대한 Sortable 초기화
+            initSortableCategories();
             
             // 이벤트 핸들러 추가
             document.querySelectorAll('.edit-favorite-btn').forEach(btn => {
@@ -732,6 +760,91 @@
             document.querySelectorAll('.delete-favorite-btn').forEach(btn => {
                 btn.addEventListener('click', handleDeleteFavorite);
             });
+        }
+        
+        // 카테고리 정렬 기능 초기화
+        function initSortableCategories() {
+            new Sortable(document.getElementById('favorites-list'), {
+                animation: 150,
+                handle: '.category-drag-handle',
+                ghostClass: 'sortable-ghost',
+                onEnd: function(evt) {
+                    // 카테고리 순서가 변경된 후 데이터 업데이트
+                    updateFavoritesOrder();
+                }
+            });
+        }
+        
+        // 항목 정렬 기능 초기화
+        function initSortableItems(container, category) {
+            new Sortable(container, {
+                animation: 150,
+                handle: '.item-drag-handle',
+                ghostClass: 'sortable-ghost',
+                group: 'favorites',
+                onEnd: function(evt) {
+                    // 항목 순서가 변경된 후 데이터 업데이트
+                    updateFavoritesOrder();
+                }
+            });
+        }
+        
+        // 변경된 순서에 따라 favorites 배열 업데이트
+        function updateFavoritesOrder() {
+            const newFavorites = [];
+            
+            // 모든 카테고리 컨테이너를 순회
+            document.querySelectorAll('.category-container').forEach(categoryContainer => {
+                const category = categoryContainer.dataset.category;
+                
+                // 해당 카테고리의 모든 항목을 순회
+                categoryContainer.querySelectorAll('.favorite-item').forEach(item => {
+                    // 원래 인덱스 가져오기
+                    const originalIndex = parseInt(item.dataset.index);
+                    const originalCategory = item.closest('.category-items').dataset.category;
+                    
+                    // 원래 데이터 찾기
+                    let originalItem = null;
+                    favorites.forEach(fav => {
+                        if ((fav.category || '미분류') === originalCategory) {
+                            if (fav._index === originalIndex) {
+                                originalItem = fav;
+                            }
+                        }
+                    });
+                    
+                    if (!originalItem) {
+                        // 카테고리에서 해당 인덱스의 항목 찾기
+                        const categoryItems = favorites.filter(f => (f.category || '미분류') === originalCategory);
+                        if (categoryItems[originalIndex]) {
+                            originalItem = categoryItems[originalIndex];
+                        }
+                    }
+                    
+                    if (originalItem) {
+                        // 새 카테고리로 항목 추가
+                        const newItem = {...originalItem};
+                        newItem.category = category;
+                        newItem._index = originalIndex; // 원래 인덱스 저장
+                        newFavorites.push(newItem);
+                    }
+                });
+            });
+            
+            // 업데이트된 배열로 교체
+            if (newFavorites.length > 0) {
+                favorites = newFavorites;
+                
+                // Firebase에 변경사항 저장 (로그인한 경우)
+                if (currentUser) {
+                    saveFavoritesToFirebase();
+                } else {
+                    // 로컬 스토리지에 저장
+                    localStorage.setItem('favorites', JSON.stringify(favorites));
+                }
+                
+                M.toast({html: '순서가 변경되었습니다'});
+            }
         }
         
         // 즐겨찾기 추가 모달 열기
@@ -1613,6 +1726,32 @@
             
             // 즐겨찾기 삭제 확인 버튼 이벤트 리스너
             document.getElementById('confirm-delete-btn').addEventListener('click', confirmDeleteFavorite);
+
+            // CSS 스타일 추가
+            const style = document.createElement('style');
+            style.textContent = `
+                .sortable-ghost {
+                    opacity: 0.4;
+                    background-color: #e0f7fa;
+                }
+                
+                .category-header-container {
+                    cursor: default;
+                }
+                
+                .category-header-wrapper {
+                    padding: 5px 0;
+                }
+                
+                .item-drag-handle, .category-drag-handle {
+                    cursor: grab;
+                }
+                
+                .item-drag-handle:active, .category-drag-handle:active {
+                    cursor: grabbing;
+                }
+            `;
+            document.head.appendChild(style);
         };
     </script>
 </body>
