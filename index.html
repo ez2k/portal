@@ -1231,6 +1231,17 @@
         // Firebase 초기화 및 인증 기능
         let isFirebaseInitialized = false;
         let currentUser = null;
+
+        // Firebase 초기화
+        const firebaseConfig = {
+            apiKey: "AIzaSyCqStQu5WgnsgdMRyUgvkpZqQx6dMQMQjs",
+            authDomain: "gate-ec499.firebaseapp.com",
+            databaseURL: "https://gate-ec499-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "gate-ec499",
+            storageBucket: "gate-ec499.firebasestorage.app",
+            messagingSenderId: "591449889520",
+            appId: "1:591449889520:web:6b0f2dddd461663fcbc035",
+        };
         
         function initFirebase() {
             // 이미 초기화되었다면 중복 실행 방지
