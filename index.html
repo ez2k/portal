@@ -433,7 +433,6 @@
                 <div class="memo-title">
                     <h3>간단 메모</h3>
                     <div>
-                        <button class="memo-save" id="memo-login">로그인</button>
                         <button class="memo-save" id="memo-save">저장</button>
                     </div>
                 </div>
@@ -1314,7 +1313,7 @@
             document.getElementById('user-name').textContent = user.displayName || user.email || '사용자';
             
             // 메모 UI 업데이트
-            document.getElementById('memo-login').textContent = '메모 저장';
+            document.getElementById('memo-save').textContent = '저장';
             document.getElementById('sync-status').textContent = '동기화됨';
             document.getElementById('sync-status').style.color = '#4caf50';
             
@@ -1332,7 +1331,7 @@
             document.getElementById('user-profile').style.display = 'none';
             
             // 메모 UI 업데이트
-            document.getElementById('memo-login').textContent = '저장';
+            document.getElementById('memo-save').textContent = '저장';
             document.getElementById('sync-status').textContent = '오프라인 모드';
             document.getElementById('sync-status').style.color = '#777';
         }
@@ -1735,7 +1734,6 @@
         function initMemo() {
             const memoContent = document.getElementById('memo-content');
             const memoSaveBtn = document.getElementById('memo-save');
-            const memoLoginBtn = document.getElementById('memo-login');
             
             // 저장된 메모 불러오기 (로컬)
             const savedMemo = localStorage.getItem('quickMemo');
@@ -1751,16 +1749,22 @@
                 if (isSaving) return; // 이미 저장 중이면 중복 호출 방지
                 
                 isSaving = true;
-                saveMemoToFirebase(memoContent.value);
+                
+                if (!currentUser) {
+                    // 로그인되지 않은 경우 로그인 모달 표시
+                    const authModal = document.getElementById('auth-modal');
+                    const modalInstance = M.Modal.getInstance(authModal);
+                    if (modalInstance) modalInstance.open();
+                } else {
+                    // 로그인된 경우 저장 진행
+                    saveMemoToFirebase(memoContent.value);
+                }
                 
                 // 저장 후 약간의 시간 동안 추가 저장 방지 (blur 이벤트에 의한 중복 저장 방지)
                 setTimeout(() => {
                     isSaving = false;
                 }, 1000);
             });
-            
-            // 로그인 버튼 이벤트 핸들러
-            memoLoginBtn.addEventListener('click', toggleAuth);
             
             // 자동 저장
             memoContent.addEventListener('blur', () => {
