@@ -710,22 +710,22 @@
                     favoriteItem.className = 'col s12 m6 l4 favorite-item';
                     favoriteItem.dataset.index = index;
                     
-                    // 카드를 생성 - 전체 카드를 클릭 가능하게 함
+                    // 카드를 생성 - 전체 카드를 클릭 가능하게 함, 메뉴 위치 개선
                     favoriteItem.innerHTML = `
-                        <div class="card ${isSsh ? 'ssh-card' : ''}" style="position: relative;">
+                        <div class="card ${isSsh ? 'ssh-card' : ''}">
+                            <div class="menu-container">
+                                <a class="dropdown-trigger menu-icon" href="#!" data-target="${uniqueId}">
+                                    <i class="material-icons">more_vert</i>
+                                </a>
+                            </div>
                             <div class="card-clickable" style="cursor: pointer;" data-url="${favorite.url}">
                                 <div class="card-content">
-                                    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-                                        <div style="display: flex; align-items: flex-start; width: calc(100% - 40px);">
-                                            <i class="material-icons item-drag-handle" style="cursor: move; margin-right: 5px; color: #29b6f6;">drag_indicator</i>
-                                            <img src="${iconUrl}" alt="${favorite.title} 아이콘" class="site-icon ${isSsh ? 'ssh-icon' : ''}">
-                                            <div class="site-info" style="width: calc(100% - 60px); overflow: hidden;">
-                                                <span class="card-title">${favorite.title}</span>
-                                                <p style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${favorite.url}</p>
-                                            </div>
-                                        </div>
-                                        <div class="dropdown-trigger" data-target="${uniqueId}" style="position: absolute; top: 10px; right: 10px; z-index: 10;">
-                                            <i class="material-icons" style="cursor: pointer;">more_vert</i>
+                                    <div style="display: flex; align-items: flex-start;">
+                                        <i class="material-icons item-drag-handle" style="cursor: move; margin-right: 5px; color: #29b6f6;">drag_indicator</i>
+                                        <img src="${iconUrl}" alt="${favorite.title} 아이콘" class="site-icon ${isSsh ? 'ssh-icon' : ''}">
+                                        <div class="site-info" style="width: calc(100% - 60px); overflow: hidden;">
+                                            <span class="card-title">${favorite.title}</span>
+                                            <p style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${favorite.url}</p>
                                         </div>
                                     </div>
                                     ${isSsh ? '<span class="connection-type">SSH</span>' : ''}
@@ -1786,13 +1786,47 @@
                     z-index: 1;
                 }
                 
-                .dropdown-trigger {
-                    z-index: 2;
+                .menu-container {
+                    position: absolute;
+                    top: 10px;
+                    right: 10px;
+                    z-index: 10;
+                }
+                
+                .menu-icon {
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    width: 30px;
+                    height: 30px;
+                    border-radius: 50%;
+                    transition: background-color 0.3s;
+                }
+                
+                .menu-icon:hover {
+                    background-color: rgba(0, 0, 0, 0.1);
+                }
+                
+                .menu-icon .material-icons {
+                    color: rgba(0, 0, 0, 0.6);
+                }
+                
+                .ssh-card .menu-icon .material-icons {
+                    color: rgba(255, 255, 255, 0.7);
+                }
+                
+                .menu-icon:hover .material-icons {
+                    color: rgba(0, 0, 0, 0.8);
+                }
+                
+                .ssh-card .menu-icon:hover .material-icons {
+                    color: rgba(255, 255, 255, 0.9);
                 }
                 
                 .dropdown-content {
                     width: auto !important;
                     min-width: 150px;
+                    z-index: 999 !important;
                 }
                 
                 .dropdown-content li > a {
@@ -1804,6 +1838,12 @@
                 
                 .dropdown-content li > a > i {
                     margin-right: 12px;
+                }
+                
+                /* 드롭다운 표시 시 카드 레이아웃 보존 */
+                .card {
+                    position: relative;
+                    overflow: visible !important;
                 }
             `;
             document.head.appendChild(style);
