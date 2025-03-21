@@ -704,41 +704,46 @@
                     const urlType = favorite.type || getUrlType(favorite.url);
                     const iconUrl = getIconUrl(favorite);
                     const isSsh = urlType === 'ssh';
+                    const uniqueId = `dropdown-${category}-${index}`;
                     
                     const favoriteItem = document.createElement('div');
                     favoriteItem.className = 'col s12 m6 l4 favorite-item';
                     favoriteItem.dataset.index = index;
+                    
+                    // 카드를 생성 - 전체 카드를 클릭 가능하게 함
                     favoriteItem.innerHTML = `
-                        <div class="card ${isSsh ? 'ssh-card' : ''}">
-                            <div class="card-content">
-                                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-                                    <div style="display: flex; align-items: flex-start;">
-                                        <i class="material-icons item-drag-handle" style="cursor: move; margin-right: 5px; color: #29b6f6;">drag_indicator</i>
-                                        <img src="${iconUrl}" alt="${favorite.title} 아이콘" class="site-icon ${isSsh ? 'ssh-icon' : ''}">
-                                        <div class="site-info">
-                                            <span class="card-title">${favorite.title}</span>
-                                            <p>${isSsh ? favorite.url : `<a href="${favorite.url}" target="_blank">${favorite.url}</a>`}</p>
+                        <div class="card ${isSsh ? 'ssh-card' : ''}" style="position: relative;">
+                            <div class="card-clickable" style="cursor: pointer;" data-url="${favorite.url}">
+                                <div class="card-content">
+                                    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                                        <div style="display: flex; align-items: flex-start; width: calc(100% - 40px);">
+                                            <i class="material-icons item-drag-handle" style="cursor: move; margin-right: 5px; color: #29b6f6;">drag_indicator</i>
+                                            <img src="${iconUrl}" alt="${favorite.title} 아이콘" class="site-icon ${isSsh ? 'ssh-icon' : ''}">
+                                            <div class="site-info" style="width: calc(100% - 60px); overflow: hidden;">
+                                                <span class="card-title">${favorite.title}</span>
+                                                <p style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${favorite.url}</p>
+                                            </div>
+                                        </div>
+                                        <div class="dropdown-trigger" data-target="${uniqueId}" style="position: absolute; top: 10px; right: 10px; z-index: 10;">
+                                            <i class="material-icons" style="cursor: pointer;">more_vert</i>
                                         </div>
                                     </div>
-                                    <div class="dropdown-trigger" data-target="dropdown-${index}">
-                                        <i class="material-icons" style="cursor: pointer;">more_vert</i>
-                                    </div>
-                                </div>
-                                ${isSsh ? '<span class="connection-type">SSH</span>' : ''}
-                            </div>
-                            <div class="card-action" style="display: flex; justify-content: space-between;">
-                                <a href="${favorite.url}" target="_blank" class="blue-text">방문</a>
-                                <div style="display: flex; gap: 10px;">
-                                    <a href="#!" class="edit-favorite-btn" data-index="${index}" data-category="${category}">
-                                        <i class="material-icons blue-text">edit</i>
-                                    </a>
-                                    <a href="#!" class="delete-favorite-btn" data-index="${index}" data-category="${category}">
-                                        <i class="material-icons red-text">delete</i>
-                                    </a>
+                                    ${isSsh ? '<span class="connection-type">SSH</span>' : ''}
                                 </div>
                             </div>
+                            
+                            <!-- 드롭다운 메뉴 구조 -->
+                            <ul id="${uniqueId}" class="dropdown-content">
+                                <li><a href="#!" class="edit-favorite-btn" data-index="${index}" data-category="${category}">
+                                    <i class="material-icons blue-text">edit</i> 수정
+                                </a></li>
+                                <li><a href="#!" class="delete-favorite-btn" data-index="${index}" data-category="${category}">
+                                    <i class="material-icons red-text">delete</i> 삭제
+                                </a></li>
+                            </ul>
                         </div>
                     `;
+                    
                     itemsContainer.appendChild(favoriteItem);
                 });
                 
@@ -752,7 +757,30 @@
             // 카테고리에 대한 Sortable 초기화
             initSortableCategories();
             
-            // 이벤트 핸들러 추가
+            // 드롭다운 메뉴 초기화
+            const dropdownElems = document.querySelectorAll('.dropdown-trigger');
+            M.Dropdown.init(dropdownElems, {
+                constrainWidth: false,
+                coverTrigger: false,
+                alignment: 'right'
+            });
+            
+            // 카드 클릭 이벤트 핸들러
+            document.querySelectorAll('.card-clickable').forEach(card => {
+                card.addEventListener('click', function(e) {
+                    // 드래그 핸들이나 드롭다운 트리거를 클릭한 경우 무시
+                    if (e.target.classList.contains('item-drag-handle') || 
+                        e.target.closest('.dropdown-trigger') || 
+                        e.target.closest('.dropdown-content')) {
+                        return;
+                    }
+                    
+                    const url = this.dataset.url;
+                    window.open(url, '_blank');
+                });
+            });
+            
+            // 수정, 삭제 버튼 이벤트 핸들러
             document.querySelectorAll('.edit-favorite-btn').forEach(btn => {
                 btn.addEventListener('click', handleEditFavorite);
             });
@@ -1749,6 +1777,33 @@
                 
                 .item-drag-handle:active, .category-drag-handle:active {
                     cursor: grabbing;
+                }
+                
+                .card-clickable {
+                    position: relative;
+                    height: 100%;
+                    width: 100%;
+                    z-index: 1;
+                }
+                
+                .dropdown-trigger {
+                    z-index: 2;
+                }
+                
+                .dropdown-content {
+                    width: auto !important;
+                    min-width: 150px;
+                }
+                
+                .dropdown-content li > a {
+                    display: flex;
+                    align-items: center;
+                    color: rgba(0, 0, 0, 0.87);
+                    padding: 14px 16px;
+                }
+                
+                .dropdown-content li > a > i {
+                    margin-right: 12px;
                 }
             `;
             document.head.appendChild(style);
