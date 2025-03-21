@@ -149,11 +149,171 @@
             border-radius: 4px;
             font-size: 0.8em;
         }
+
+        /* 위젯 스타일 */
+        .widgets-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            margin-bottom: 30px;
+        }
+        
+        .widget {
+            background-color: rgba(255, 255, 255, 0.8);
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* 시계 위젯 */
+        .clock-widget {
+            flex: 1;
+            margin-right: 15px;
+            text-align: center;
+            min-width: 200px;
+        }
+        
+        .time {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin: 0;
+            color: #333;
+        }
+        
+        .date {
+            font-size: 1.2rem;
+            color: #555;
+            margin: 5px 0 0 0;
+        }
+        
+        /* 날씨 위젯 */
+        .weather-widget {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            margin-right: 15px;
+            min-width: 200px;
+        }
+        
+        .weather-icon {
+            width: 64px;
+            height: 64px;
+            margin-right: 15px;
+        }
+        
+        .weather-info {
+            flex-grow: 1;
+        }
+        
+        .temperature {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin: 0;
+            color: #333;
+        }
+        
+        .weather-description {
+            font-size: 1rem;
+            color: #555;
+            margin: 5px 0;
+        }
+        
+        .weather-location {
+            font-size: 0.9rem;
+            color: #777;
+            margin: 0;
+        }
+        
+        /* 메모 위젯 */
+        .memo-widget {
+            flex: 2;
+            min-width: 300px;
+        }
+        
+        .memo-title {
+            margin: 0 0 10px 0;
+            color: #333;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .memo-title h3 {
+            margin: 0;
+            font-size: 1.2rem;
+        }
+        
+        .memo-content {
+            width: 100%;
+            height: 100px;
+            resize: none;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 10px;
+            font-family: 'NanumSquare', sans-serif;
+            background-color: rgba(255, 255, 255, 0.7);
+        }
+        
+        .memo-content:focus {
+            outline: none;
+            border-color: #29b6f6;
+            box-shadow: 0 0 5px rgba(41, 182, 246, 0.5);
+        }
+        
+        .memo-save {
+            background-color: #29b6f6;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 5px 10px;
+            font-size: 0.8rem;
+            cursor: pointer;
+        }
+        
+        @media screen and (max-width: 768px) {
+            .widgets-container {
+                flex-direction: column;
+            }
+            
+            .clock-widget, .weather-widget, .memo-widget {
+                margin-right: 0;
+                width: 100%;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="overlay"></div>
     <div class="container">
+        <!-- 위젯 컨테이너 추가 -->
+        <div class="widgets-container">
+            <!-- 시계 위젯 -->
+            <div class="widget clock-widget">
+                <p class="time" id="current-time">00:00:00</p>
+                <p class="date" id="current-date">Loading...</p>
+            </div>
+            
+            <!-- 날씨 위젯 -->
+            <div class="widget weather-widget">
+                <img src="https://openweathermap.org/img/wn/01d@2x.png" alt="날씨" class="weather-icon" id="weather-icon">
+                <div class="weather-info">
+                    <p class="temperature" id="temperature">--°C</p>
+                    <p class="weather-description" id="weather-description">날씨 정보를 불러오는 중...</p>
+                    <p class="weather-location" id="weather-location">위치 확인 중...</p>
+                </div>
+            </div>
+            
+            <!-- 메모 위젯 -->
+            <div class="widget memo-widget">
+                <div class="memo-title">
+                    <h3>간단 메모</h3>
+                    <button class="memo-save" id="memo-save">저장</button>
+                </div>
+                <textarea class="memo-content" id="memo-content" placeholder="여기에 간단한 메모를 작성하세요..."></textarea>
+            </div>
+        </div>
+        
         <h1 class="center-align">즐겨찾기 페이지</h1>
         <div id="favorites-list" class="row">
             <!-- 즐겨찾기 목록이 여기에 표시됩니다 -->
@@ -297,11 +457,117 @@
             });
         }
 
-        // 페이지 로드 시 배경 이미지 설정 및 즐겨찾기 데이터 로드
+        // 시계 및 날짜 업데이트 함수
+        function updateClock() {
+            const now = new Date();
+            
+            // 시간 포맷팅
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            const timeString = `${hours}:${minutes}:${seconds}`;
+            
+            // 날짜 포맷팅
+            const options = { 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric', 
+                weekday: 'long' 
+            };
+            const dateString = now.toLocaleDateString('ko-KR', options);
+            
+            // 화면 업데이트
+            document.getElementById('current-time').textContent = timeString;
+            document.getElementById('current-date').textContent = dateString;
+        }
+        
+        // 날씨 정보 업데이트 함수
+        function updateWeather() {
+            // OpenWeatherMap API 키
+            const apiKey = '3e90cca650fa79843889da92d5e8c96a';
+            
+            // 위치 정보 가져오기
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        const lat = position.coords.latitude;
+                        const lon = position.coords.longitude;
+                        
+                        // API에서 날씨 정보 가져오기
+                        fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric&lang=kr`)
+                            .then(response => response.json())
+                            .then(data => {
+                                // 온도 업데이트
+                                const temp = Math.round(data.main.temp);
+                                document.getElementById('temperature').textContent = `${temp}°C`;
+                                
+                                // 날씨 설명 업데이트
+                                const description = data.weather[0].description;
+                                document.getElementById('weather-description').textContent = description;
+                                
+                                // 날씨 아이콘 업데이트
+                                const iconCode = data.weather[0].icon;
+                                const iconUrl = `https://openweathermap.org/img/wn/${iconCode}@2x.png`;
+                                document.getElementById('weather-icon').src = iconUrl;
+                                
+                                // 위치 업데이트
+                                const cityName = data.name;
+                                document.getElementById('weather-location').textContent = cityName;
+                            })
+                            .catch(error => {
+                                console.error('날씨 정보를 가져오는 중 오류 발생:', error);
+                                document.getElementById('weather-description').textContent = '날씨 정보를 불러올 수 없습니다';
+                            });
+                    },
+                    (error) => {
+                        console.error('위치 정보를 가져오는 중 오류 발생:', error);
+                        document.getElementById('weather-location').textContent = '위치 정보를 사용할 수 없습니다';
+                    }
+                );
+            } else {
+                document.getElementById('weather-location').textContent = '위치 정보가 지원되지 않는 브라우저입니다';
+            }
+        }
+        
+        // 메모 기능 초기화
+        function initMemo() {
+            const memoContent = document.getElementById('memo-content');
+            const memoSaveBtn = document.getElementById('memo-save');
+            
+            // 저장된 메모 불러오기
+            const savedMemo = localStorage.getItem('quickMemo');
+            if (savedMemo) {
+                memoContent.value = savedMemo;
+            }
+            
+            // 저장 버튼 이벤트 핸들러
+            memoSaveBtn.addEventListener('click', () => {
+                localStorage.setItem('quickMemo', memoContent.value);
+                M.toast({html: '메모가 저장되었습니다!'});
+            });
+            
+            // 자동 저장 (옵션)
+            memoContent.addEventListener('blur', () => {
+                localStorage.setItem('quickMemo', memoContent.value);
+            });
+        }
+        
+        // 페이지 로드 시 실행할 함수들
         window.onload = function() {
-            setRandomBackground();
             loadFavorites();
             
+            // 시계 초기화 및 1초마다 업데이트
+            updateClock();
+            setInterval(updateClock, 1000);
+            
+            // 날씨 정보 로드
+            updateWeather();
+            
+            // 메모 기능 초기화
+            initMemo();
+            
+            // 배경 이미지 설정
+            setRandomBackground();
             // 30초마다 배경 이미지 변경 (선택적)
             setInterval(setRandomBackground, 30000);
         };
