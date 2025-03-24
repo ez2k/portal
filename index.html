@@ -869,12 +869,12 @@
             if (newFavorites.length > 0) {
                 favorites = newFavorites;
                 
+                // 항상 로컬 스토리지에 먼저 저장
+                localStorage.setItem('favorites', JSON.stringify(favorites));
+                
                 // Firebase에 변경사항 저장 (로그인한 경우)
                 if (currentUser) {
                     saveFavoritesToFirebase();
-                } else {
-                    // 로컬 스토리지에 저장
-                    localStorage.setItem('favorites', JSON.stringify(favorites));
                 }
                 
                 M.toast({html: '순서가 변경되었습니다'});
@@ -1018,16 +1018,16 @@
                 M.toast({html: '새 즐겨찾기가 추가되었습니다'});
             }
             
-            // 변경사항 저장 및 표시 업데이트
+            // 항상 로컬 스토리지에 먼저 저장
+            localStorage.setItem('favorites', JSON.stringify(favorites));
+            
+            // 변경사항 표시 업데이트
             displayFavorites();
             
             // Firebase에 저장 (로그인한 경우)
             if (currentUser) {
                 saveFavoritesToFirebase();
-            } else {
-                // 로컬 스토리지에 저장
-                localStorage.setItem('favorites', JSON.stringify(favorites));
-            }
+            } 
             
             // 모달 닫기
             const modal = document.getElementById('favorite-modal');
@@ -1047,16 +1047,16 @@
             // 항목 삭제
             favorites.splice(deleteIndex, 1);
             
-            // 변경사항 저장 및 표시 업데이트
+            // 항상 로컬 스토리지에 먼저 저장
+            localStorage.setItem('favorites', JSON.stringify(favorites));
+            
+            // 변경사항 표시 업데이트
             displayFavorites();
             
             // Firebase에 저장 (로그인한 경우)
             if (currentUser) {
                 saveFavoritesToFirebase();
-            } else {
-                // 로컬 스토리지에 저장
-                localStorage.setItem('favorites', JSON.stringify(favorites));
-            }
+            } 
             
             M.toast({html: '즐겨찾기가 삭제되었습니다'});
             
@@ -1075,6 +1075,7 @@
                     favorites = JSON.parse(storedFavorites);
                     displayFavorites();
                     updateFavoritesSyncStatus('로컬 스토리지에서 로드됨', '#777');
+                    console.log('로컬 스토리지에서 즐겨찾기 불러옴');
                     return;
                 } catch (error) {
                     console.error('로컬 스토리지 데이터 파싱 오류:', error);
@@ -1089,11 +1090,15 @@
                     displayFavorites();
                     // 로컬 스토리지에 저장
                     localStorage.setItem('favorites', JSON.stringify(favorites));
-                    updateFavoritesSyncStatus('로컬 데이터 로드됨', '#777');
+                    updateFavoritesSyncStatus('기본 데이터 로드됨', '#777');
+                    console.log('data/favorites.json에서 즐겨찾기 불러옴');
                 })
                 .catch(error => {
                     console.error('즐겨찾기 데이터를 불러오는 중 오류가 발생했습니다:', error);
-                    updateFavoritesSyncStatus('로컬 데이터 로드 오류', '#f44336');
+                    updateFavoritesSyncStatus('데이터 로드 오류', '#f44336');
+                    // 오류 발생 시 빈 배열로 초기화
+                    favorites = [];
+                    displayFavorites();
                 });
         }
 
