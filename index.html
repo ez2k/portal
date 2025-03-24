@@ -1819,6 +1819,9 @@
             // 인증 기능 초기화
             initAuth();
             
+            // 로컬 스토리지에서 즐겨찾기 불러오기 (항상 먼저 실행)
+            loadFavoritesFromLocal();
+            
             // 시계 초기화 및 1초마다 업데이트
             updateClock();
             setInterval(updateClock, 1000);
