@@ -1694,24 +1694,24 @@
         
         // Firebase에 메모 저장
         function saveMemoToFirebase(content) {
-            // 불필요한 저장 요청 무시 (내용이 비어있거나 이전과 동일한 경우)
-            const lastSavedMemo = localStorage.getItem('quickMemo');
-            if (content === lastSavedMemo) {
-                console.log('메모 내용이 변경되지 않아 저장을 건너뜁니다.');
+            // 로컬 스토리지에 항상 저장 (백업)
+            localStorage.setItem('quickMemo', content);
+            
+            // 이전에 저장된 내용과 동일한지 확인
+            const lastSavedMemo = localStorage.getItem('lastSyncedMemo');
+            if (content === lastSavedMemo && currentUser) {
+                console.log('메모 내용이 변경되지 않아 Firebase 저장을 건너뜁니다.');
                 document.getElementById('sync-status').textContent = '변경사항 없음';
                 document.getElementById('sync-status').style.color = '#777';
                 return;
             }
             
-            // 로컬 스토리지에 저장 (백업)
-            localStorage.setItem('quickMemo', content);
-            
             if (!currentUser) {
-                M.toast({html: '메모가 로컬에 저장되었습니다'});
+                console.log('로그인 상태가 아니므로 로컬에만 저장합니다.');
                 return;
             }
             
-            console.log('메모 저장 시작');
+            console.log('메모 Firebase 저장 시작');
             const userId = currentUser.uid;
             firebase.database().ref('memos/' + userId).set({
                 content: content,
@@ -1720,6 +1720,8 @@
             .then(() => {
                 document.getElementById('sync-status').textContent = '동기화됨';
                 document.getElementById('sync-status').style.color = '#4caf50';
+                // 마지막 동기화된 내용 저장
+                localStorage.setItem('lastSyncedMemo', content);
                 console.log('메모 저장 완료');
             })
             .catch(error => {
@@ -1750,14 +1752,23 @@
                 
                 isSaving = true;
                 
+                // 항상 로컬에 먼저 저장
+                const content = memoContent.value;
+                localStorage.setItem('quickMemo', content);
+                
                 if (!currentUser) {
-                    // 로그인되지 않은 경우 로그인 모달 표시
-                    const authModal = document.getElementById('auth-modal');
-                    const modalInstance = M.Modal.getInstance(authModal);
-                    if (modalInstance) modalInstance.open();
+                    // 로그인되지 않은 경우, 로컬 저장 완료 메시지 표시
+                    document.getElementById('sync-status').textContent = '로컬에 저장됨';
+                    document.getElementById('sync-status').style.color = '#777';
+                    M.toast({html: '메모가 로컬에 저장되었습니다'});
+                    
+                    // 추가 선택 - 로그인 추천 모달 (선택적으로 활성화)
+                    // const authModal = document.getElementById('auth-modal');
+                    // const modalInstance = M.Modal.getInstance(authModal);
+                    // if (modalInstance) modalInstance.open();
                 } else {
-                    // 로그인된 경우 저장 진행
-                    saveMemoToFirebase(memoContent.value);
+                    // 로그인된 경우 Firebase에도 저장
+                    saveMemoToFirebase(content);
                 }
                 
                 // 저장 후 약간의 시간 동안 추가 저장 방지 (blur 이벤트에 의한 중복 저장 방지)
@@ -1771,9 +1782,14 @@
                 // 이미 저장 중이면 중복 저장 방지
                 if (isSaving) return;
                 
-                // 오프라인이면 로컬 스토리지에만 저장
+                // 항상 로컬에 저장
+                const content = memoContent.value;
+                localStorage.setItem('quickMemo', content);
+                
+                // 오프라인이면 로컬 스토리지에만 저장하고 상태 업데이트
                 if (!currentUser) {
-                    localStorage.setItem('quickMemo', memoContent.value);
+                    document.getElementById('sync-status').textContent = '로컬에 저장됨';
+                    document.getElementById('sync-status').style.color = '#777';
                     return;
                 }
                 
@@ -1781,7 +1797,7 @@
                 isSaving = true;
                 document.getElementById('sync-status').textContent = '동기화 중...';
                 document.getElementById('sync-status').style.color = '#ff9800';
-                saveMemoToFirebase(memoContent.value);
+                saveMemoToFirebase(content);
                 
                 // 저장 완료 후 플래그 해제
                 setTimeout(() => {
